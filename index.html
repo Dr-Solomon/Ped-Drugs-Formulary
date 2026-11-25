@@ -1,0 +1,2834 @@
+By Solomon MD, MPH/RH 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PediDose Pro — Pediatric Syrup & Suspension Dose Calculator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        clinical: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+            .print-shadow-none {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+        }
+
+        #syringeLiquid, #syringePlunger {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Top Clinical Disclaimer Banner -->
+    <div class="bg-amber-50 border-b border-amber-200 px-4 py-2 text-amber-900 text-xs sm:text-sm no-print">
+        <div class="max-w-7xl mx-auto flex items-start sm:items-center gap-2.5">
+            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base mt-0.5 sm:mt-0 shrink-0"></i>
+            <p>
+                <strong class="font-semibold">Clinical Reference Disclaimer:</strong> For educational and clinical decision-support purposes only. Always verify bottle concentration, age restrictions, and maximum daily limits before prescribing or administering.
+            </p>
+        </div>
+    </div>
+
+    <!-- Header Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-clinical-600 to-teal-700 text-white flex items-center justify-center shadow-md shadow-clinical-600/20 shrink-0">
+                    <i class="fa-solid fa-prescription-bottle-medical text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-none">
+                        PediDose <span class="text-clinical-600">Pro</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">41-Medication Pediatric Syrup &amp; Suspension Calculator</p>
+                </div>
+            </div>
+
+            <!-- View Switcher Tabs -->
+            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button type="button" id="btnViewSingle" class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-clinical-700 shadow-sm flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-syringe"></i>
+                    <span>Single Drug Calculator</span>
+                </button>
+                <button type="button" id="btnViewAll" class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-table-list"></i>
+                    <span>All Syrups Table</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Patient Parameters Card -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 mb-6 print-shadow-none">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-lg bg-clinical-50 text-clinical-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-child-reaching"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800 leading-tight">Patient Weight &amp; Age</h2>
+                        <p class="text-xs text-slate-400">Adjust weight or age to dynamically compute pediatric doses</p>
+                    </div>
+                </div>
+
+                <!-- Quick Weight Preset Buttons + Reset -->
+                <div id="quickWeightContainer" class="flex flex-wrap items-center gap-1.5 no-print">
+                    <span class="text-xs text-slate-400 font-medium mr-1">Quick Weight:</span>
+                    <button type="button" data-wt="5" data-age="2" data-ageunit="months" class="quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer">5 kg</button>
+                    <button type="button" data-wt="8" data-age="8" data-ageunit="months" class="quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer">8 kg</button>
+                    <button type="button" data-wt="10" data-age="1" data-ageunit="years" class="quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer">10 kg</button>
+                    <button type="button" data-wt="12" data-age="2" data-ageunit="years" class="quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer">12 kg</button>
+                    <button type="button" data-wt="15" data-age="3" data-ageunit="years" class="quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer">15 kg</button>
+                    <button type="button" data-wt="20" data-age="6" data-ageunit="years" class="quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer">20 kg</button>
+                    <button type="button" data-wt="25" data-age="8" data-ageunit="years" class="quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer">25 kg</button>
+                    <button type="button" data-wt="30" data-age="10" data-ageunit="years" class="quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer">30 kg</button>
+                    <button type="button" id="btnResetPatient" class="ml-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition flex items-center gap-1 cursor-pointer" title="Reset weight and age to default">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5 pt-4 items-end">
+                <!-- Weight Controls (Stepper + Numeric Input + Slider) -->
+                <div class="md:col-span-7">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="weightInput" class="text-xs font-bold uppercase tracking-wider text-slate-500">Body Weight (kg) <span class="text-rose-500">*</span></label>
+                        <span id="weightLbsBadge" class="text-xs font-mono font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">30.9 lbs</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnWeightMinus" class="w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold text-lg flex items-center justify-center border border-slate-300 transition shrink-0 cursor-pointer no-print" aria-label="Decrease weight by 0.5 kg">
+                            <i class="fa-solid fa-minus text-sm"></i>
+                        </button>
+
+                        <div class="relative flex-1">
+                            <input type="number" id="weightInput" value="14" min="1" max="120" step="0.5"
+                                class="w-full pl-4 pr-12 py-2.5 text-lg font-extrabold font-mono text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-clinical-500 focus:border-clinical-500 focus:bg-white outline-none transition">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">kg</span>
+                        </div>
+
+                        <button type="button" id="btnWeightPlus" class="w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold text-lg flex items-center justify-center border border-slate-300 transition shrink-0 cursor-pointer no-print" aria-label="Increase weight by 0.5 kg">
+                            <i class="fa-solid fa-plus text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Weight Range Slider -->
+                    <div class="mt-2.5 no-print">
+                        <input type="range" id="weightSlider" min="2" max="60" step="0.5" value="14" class="w-full accent-clinical-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] font-mono text-slate-400 mt-0.5">
+                            <span>2 kg</span>
+                            <span>15 kg</span>
+                            <span>30 kg</span>
+                            <span>45 kg</span>
+                            <span>60 kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Age Input & Unit Selector -->
+                <div class="md:col-span-5">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="ageInput" class="text-xs font-bold uppercase tracking-wider text-slate-500">Patient Age</label>
+                        <span id="ageSummaryBadge" class="text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-md">3 yrs (36 mos)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="ageInput" value="3" min="0" max="216" step="1"
+                            class="w-full pl-4 pr-3 py-2.5 text-lg font-extrabold font-mono text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-clinical-500 focus:border-clinical-500 focus:bg-white outline-none transition">
+                        <select id="ageUnitSelect" class="px-3.5 py-3 text-sm font-bold text-slate-700 bg-slate-100 border border-slate-300 rounded-xl focus:ring-2 focus:ring-clinical-500 outline-none cursor-pointer">
+                            <option value="years" selected>Years</option>
+                            <option value="months">Months</option>
+                        </select>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Used for age-tiered antihistamines, zinc, vitamins &amp; safety warnings.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 1: SINGLE DRUG CALCULATOR ==================== -->
+        <div id="singleDrugView" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left Column: Search, Category Pills & Medication List (5 cols) -->
+            <div class="lg:col-span-5 space-y-5 no-print">
+
+                <!-- 1. Medication Catalog Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-600">1. Select Pediatric Medication</h2>
+                        <span id="medCountBadge" class="text-xs font-bold bg-clinical-50 text-clinical-700 border border-clinical-200 px-2.5 py-0.5 rounded-full">41 Syrups</span>
+                    </div>
+
+                    <!-- Search Input + Clear Button -->
+                    <div class="relative mb-3">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="medSearchInput" placeholder="Search Aferin, Augmentin, Plasil, Ibuprofen..."
+                            class="w-full pl-9 pr-9 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-clinical-500 focus:border-clinical-500 focus:bg-white outline-none transition">
+                        <button type="button" id="btnClearSearch" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 text-xs flex items-center justify-center cursor-pointer" aria-label="Clear search">
+                            &times;
+                        </button>
+                    </div>
+
+                    <!-- Category Filter Pills -->
+                    <div id="categoryPillsContainer" class="flex flex-wrap gap-1.5 mb-3">
+                        <button type="button" data-cat="All" class="cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-clinical-600 text-white shadow-xs transition cursor-pointer">All (41)</button>
+                        <button type="button" data-cat="Analgesic & Fever" class="cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Analgesic &amp; Fever</button>
+                        <button type="button" data-cat="Antibiotics" class="cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Antibiotics</button>
+                        <button type="button" data-cat="Allergy, Cold & Cough" class="cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Allergy, Cold &amp; Cough</button>
+                        <button type="button" data-cat="GI & Anti-emetic" class="cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">GI &amp; Anti-emetic</button>
+                        <button type="button" data-cat="Respiratory & Steroids" class="cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Respiratory &amp; Steroids</button>
+                        <button type="button" data-cat="Antiparasitic & Supplements" class="cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Antiparasitic &amp; Supplements</button>
+                    </div>
+
+                    <!-- Scrollable Drug Selection Cards -->
+                    <div id="medicationList" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- 2. Strength & Regimen Configuration Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-600">2. Bottle Strength &amp; Regimen</h2>
+
+                    <!-- Formulation Dropdown -->
+                    <div>
+                        <label for="formulationSelect" class="block text-xs font-semibold text-slate-600 mb-1.5">Syrup / Drops Concentration</label>
+                        <select id="formulationSelect" class="w-full px-3.5 py-2.5 text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-clinical-500 focus:border-clinical-500 outline-none transition cursor-pointer">
+                        </select>
+                    </div>
+
+                    <!-- Regimen / Indication Toggle Buttons -->
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-600 mb-1.5">Dosing Regimen / Indication</span>
+                        <div id="regimenButtonsContainer" class="space-y-2">
+                            <!-- Rendered dynamically as clickable regimen buttons -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Sticky Dosing Result Card & Interactive Syringe (7 cols) -->
+            <div class="lg:col-span-7 space-y-5">
+                <div class="lg:sticky lg:top-20 space-y-5">
+
+                    <!-- Dynamic Age / Safety Alert Banner -->
+                    <div id="safetyAlertBox" class="hidden rounded-2xl p-4 border shadow-sm"></div>
+
+                    <!-- Main Calculation Result Card -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-shadow-none">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span id="resCategoryBadge" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-clinical-500/25 text-clinical-200 border border-clinical-400/30">Allergy, Cold &amp; Cough</span>
+                                    <span id="resActiveIngredient" class="text-xs text-slate-300 font-medium">Paracetamol + Chlorpheniramine</span>
+                                </div>
+                                <h3 id="resDrugTitle" class="text-xl font-bold mt-1 tracking-tight">Aferin Pediatric Syrup</h3>
+                                <p id="resFormulationSubtitle" class="text-xs text-slate-300 font-mono mt-0.5">120 mg Paracetamol + 1 mg Chlorpheniramine / 5 mL</p>
+                            </div>
+
+                            <!-- Copy Dose Summary & Print Buttons -->
+                            <div class="flex items-center gap-2 no-print">
+                                <button type="button" id="btnCopySummary" class="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 active:bg-white/30 text-white text-xs font-semibold flex items-center gap-1.5 transition border border-white/20 cursor-pointer">
+                                    <i class="fa-regular fa-copy"></i>
+                                    <span id="copyBtnLabel">Copy Dose Summary</span>
+                                </button>
+                                <button type="button" id="btnPrintSummary" class="px-3 py-2 rounded-xl bg-clinical-600 hover:bg-clinical-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer" title="Print dosing sheet">
+                                    <i class="fa-solid fa-print"></i>
+                                    <span>Print</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Core Volume & Mass Output -->
+                        <div class="p-5 sm:p-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                <!-- Single Dose Volume (mL) -->
+                                <div class="bg-clinical-50/90 border-2 border-clinical-500/30 rounded-2xl p-4 relative">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-clinical-800 flex items-center justify-between">
+                                        <span>Give Per Dose (Volume)</span>
+                                        <i class="fa-solid fa-droplet text-clinical-600"></i>
+                                    </div>
+                                    <div class="mt-2 flex items-baseline gap-2">
+                                        <span id="resVolumeMl" class="text-4xl sm:text-5xl font-extrabold font-mono text-clinical-700 tracking-tight">7.3</span>
+                                        <span class="text-xl font-bold text-clinical-700">mL</span>
+                                    </div>
+                                    <div id="resPracticalRound" class="mt-1.5 text-xs font-medium text-clinical-900/80">
+                                        Practical measure: <strong class="font-mono">~7.5 mL</strong> (1.50 &times; 5 mL spoons)
+                                    </div>
+                                </div>
+
+                                <!-- Single Dose Mass & Schedule -->
+                                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between">
+                                    <div>
+                                        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                                            <span>Active Dose &amp; Interval</span>
+                                            <i class="fa-regular fa-clock text-slate-400"></i>
+                                        </div>
+                                        <div class="mt-2 flex items-baseline gap-2">
+                                            <span id="resDoseMg" class="text-3xl sm:text-4xl font-extrabold font-mono text-slate-800">175</span>
+                                            <span id="resDoseUnit" class="text-base font-bold text-slate-600">mg / dose</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-2.5 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2">
+                                        <span id="resFrequencyBadge" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
+                                            <i class="fa-solid fa-repeat"></i> Every 6 hours (QID)
+                                        </span>
+                                        <span id="resPerKgActual" class="text-xs font-mono font-semibold text-slate-500">12.5 mg/kg</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Interactive Animated SVG Oral Syringe -->
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                    <span class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-syringe text-clinical-600"></i>
+                                        Oral Syringe Guide (<span id="syringeCapacityLabel" class="text-clinical-700">10 mL</span> Barrel)
+                                    </span>
+                                    <span id="syringeNote" class="text-xs font-mono font-bold text-clinical-700">Draw plunger to 7.29 mL</span>
+                                </div>
+
+                                <div class="w-full overflow-x-auto py-1">
+                                    <svg id="syringeSvg" viewBox="0 0 640 115" class="w-full h-auto min-w-[320px] select-none" role="img" aria-label="Interactive Oral Syringe Volume Guide">
+                                        <defs>
+                                            <linearGradient id="liquidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.85"/>
+                                                <stop offset="50%" stop-color="#0d9488" stop-opacity="0.92"/>
+                                                <stop offset="100%" stop-color="#115e59" stop-opacity="0.96"/>
+                                            </linearGradient>
+                                            <linearGradient id="barrelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" stop-color="#f8fafc"/>
+                                                <stop offset="50%" stop-color="#ffffff"/>
+                                                <stop offset="100%" stop-color="#e2e8f0"/>
+                                            </linearGradient>
+                                        </defs>
+
+                                        <!-- Nozzle Tip -->
+                                        <rect x="18" y="46" width="32" height="18" rx="3" fill="#cbd5e1" stroke="#64748b" stroke-width="1.5"/>
+                                        <line x1="18" y1="55" x2="50" y2="55" stroke="#94a3b8" stroke-width="2"/>
+
+                                        <!-- Syringe Barrel -->
+                                        <rect x="50" y="25" width="400" height="60" rx="6" fill="url(#barrelGrad)" stroke="#475569" stroke-width="2"/>
+
+                                        <!-- Animated Liquid Fill -->
+                                        <rect id="syringeLiquid" x="51" y="26" width="200" height="58" rx="4" fill="url(#liquidGrad)"/>
+
+                                        <!-- Animated Plunger Stopper & Shaft -->
+                                        <g id="syringePlunger" transform="translate(251, 0)">
+                                            <rect x="0" y="26" width="14" height="58" rx="2" fill="#1e293b"/>
+                                            <line x1="5" y1="26" x2="5" y2="84" stroke="#475569" stroke-width="1.5"/>
+                                            <line x1="9" y1="26" x2="9" y2="84" stroke="#475569" stroke-width="1.5"/>
+                                            <rect x="14" y="45" width="175" height="20" fill="#cbd5e1" stroke="#64748b" stroke-width="1.5"/>
+                                            <line x1="14" y1="55" x2="189" y2="55" stroke="#94a3b8" stroke-width="1.5"/>
+                                            <rect x="189" y="24" width="10" height="62" rx="4" fill="#94a3b8" stroke="#475569" stroke-width="1.5"/>
+                                        </g>
+
+                                        <!-- Barrel Finger Flange -->
+                                        <rect x="446" y="14" width="8" height="82" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="1.5"/>
+
+                                        <!-- Graduation Ticks & Labels -->
+                                        <g id="syringeTicks"></g>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Secondary Metrics Breakdown -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Daily Volume</span>
+                                    <span id="resDailyMl" class="text-base font-bold font-mono text-slate-800 mt-0.5 block">29.17 mL / day</span>
+                                </div>
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Daily Dose</span>
+                                    <span id="resDailyMg" class="text-base font-bold font-mono text-slate-800 mt-0.5 block">700 mg / day</span>
+                                </div>
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Max Daily Ceiling</span>
+                                    <span id="resMaxDaily" class="text-base font-bold font-mono text-slate-800 mt-0.5 block">840 mg / day</span>
+                                </div>
+                            </div>
+
+                            <!-- Clinical Pearls & Administration -->
+                            <div class="space-y-3 border-t border-slate-100 pt-5">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i class="fa-solid fa-stethoscope text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Dosing Rule &amp; Clinical Pearls</h4>
+                                        <p id="resClinicalNotes" class="text-sm text-slate-600 mt-0.5 leading-relaxed"></p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i class="fa-solid fa-hand-holding-medical text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Administration &amp; Storage</h4>
+                                        <p id="resAdminTips" class="text-sm text-slate-600 mt-0.5 leading-relaxed"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VIEW 2: ALL SYRUPS TABLE ==================== -->
+        <div id="allDrugsView" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-50/70">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Complete 41-Medication Weight-Based Pediatric Table</h2>
+                        <p id="overviewSubtitle" class="text-xs text-slate-500 mt-0.5">Calculated using standard primary regimens for 14.0 kg (3 yrs). Click any row to open full calculator.</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 no-print">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="tableSearchInput" placeholder="Filter table..." class="pl-8 pr-3 py-2 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-700 focus:ring-2 focus:ring-clinical-500 outline-none">
+                        </div>
+                        <select id="tableCategoryFilter" class="px-3 py-2 rounded-xl bg-white border border-slate-300 text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-clinical-500 outline-none cursor-pointer">
+                            <option value="All">All Categories (41)</option>
+                            <option value="Analgesic & Fever">Analgesic &amp; Fever</option>
+                            <option value="Antibiotics">Antibiotics</option>
+                            <option value="Allergy, Cold & Cough">Allergy, Cold &amp; Cough</option>
+                            <option value="GI & Anti-emetic">GI &amp; Anti-emetic</option>
+                            <option value="Respiratory & Steroids">Respiratory &amp; Steroids</option>
+                            <option value="Antiparasitic & Supplements">Antiparasitic &amp; Supplements</option>
+                        </select>
+                        <button type="button" id="btnPrintTable" class="px-3.5 py-2 rounded-xl bg-clinical-600 hover:bg-clinical-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition cursor-pointer">
+                            <i class="fa-solid fa-print"></i>
+                            <span>Print Table</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100/90 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-3 px-4">Medication &amp; Standard Formulation</th>
+                                <th class="py-3 px-4">Standard Rule</th>
+                                <th class="py-3 px-4">Single Dose</th>
+                                <th class="py-3 px-4 bg-clinical-50/70 text-clinical-800">Volume (mL)</th>
+                                <th class="py-3 px-4">Schedule</th>
+                                <th class="py-3 px-4">Safety Status</th>
+                                <th class="py-3 px-4 text-right no-print">Open</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allDrugsTableBody" class="divide-y divide-slate-200 text-sm">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom Toast Notification -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
+        <div class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 flex items-center gap-2.5 text-sm font-medium">
+            <i class="fa-solid fa-circle-check text-teal-400"></i>
+            <span id="toastMessage">Dose summary copied to clipboard!</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 mt-8 text-center text-xs text-slate-400 no-print">
+        <p>PediDose Pro &bull; 41-Medication Pediatric Oral Dosing Reference Engine &bull; Verify concentration prior to dispensing.</p>
+    </footer>
+
+    <!-- Application Script: Zero inline handlers, clean event delegation & 41-medication database -->
+    <script>
+        (function () {
+            'use strict';
+
+            /**
+             * Complete 41-Medication Pediatric Formulary across 6 Therapeutic Categories
+             */
+            const MEDICATIONS = [
+                // ================= 1. ANALGESIC & FEVER (3) =================
+                {
+                    id: 'paracetamol',
+                    name: 'Paracetamol (Acetaminophen)',
+                    activeIngredient: 'Paracetamol / Acetaminophen',
+                    category: 'Analgesic & Fever',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Infants <3 months with fever require prompt clinical evaluation before antipyretic administration.',
+                    formulations: [
+                        { id: 'para_120', label: 'Syrup 120 mg / 5 mL (24 mg/mL)', mgPerMl: 24, unit: 'mg' },
+                        { id: 'para_250', label: 'Forte Suspension 250 mg / 5 mL (50 mg/mL)', mgPerMl: 50, unit: 'mg' },
+                        { id: 'para_drops', label: 'Infant Drops 100 mg / mL', mgPerMl: 100, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'para_15',
+                            label: 'Standard Antipyretic / Analgesic (15 mg/kg/dose q4-6h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 15,
+                            dosesPerDay: 4,
+                            freqLabel: 'Every 4–6 hours (Max 4 doses/day)',
+                            maxSingleMg: 1000,
+                            maxDailyMgKg: 75,
+                            maxDailyMgAbs: 4000
+                        },
+                        {
+                            id: 'para_10',
+                            label: 'Mild Fever / Low-End Dose (10 mg/kg/dose q6h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 10,
+                            dosesPerDay: 4,
+                            freqLabel: 'Every 6 hours (QID PRN)',
+                            maxSingleMg: 650,
+                            maxDailyMgKg: 75,
+                            maxDailyMgAbs: 4000
+                        }
+                    ],
+                    clinicalNotes: 'Standard dose is 15 mg/kg/dose every 4–6 hours (max 4 doses/day). Strict maximum ceiling is 75 mg/kg/day (never exceeding 4,000 mg/day).',
+                    adminTips: 'May be given with or without food. Shake suspension well. Always verify bottle strength (100 mg/mL drops vs 120 mg/5 mL vs 250 mg/5 mL).'
+                },
+                {
+                    id: 'ibuprofen',
+                    name: 'Ibuprofen Oral Suspension',
+                    activeIngredient: 'Ibuprofen (NSAID)',
+                    category: 'Analgesic & Fever',
+                    minAgeMonths: 6,
+                    ageWarningText: 'CONTRAINDICATED in infants <6 months of age due to immature renal clearance and risk of nephrotoxicity/GI bleeding.',
+                    formulations: [
+                        { id: 'ibu_100', label: 'Syrup 100 mg / 5 mL (20 mg/mL)', mgPerMl: 20, unit: 'mg' },
+                        { id: 'ibu_200', label: 'Forte Suspension 200 mg / 5 mL (40 mg/mL)', mgPerMl: 40, unit: 'mg' },
+                        { id: 'ibu_drops', label: 'Infant Drops 40 mg / mL', mgPerMl: 40, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'ibu_10',
+                            label: 'High Fever / Pain (10 mg/kg/dose q6-8h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 10,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 6–8 hours (TID / QID)',
+                            maxSingleMg: 600,
+                            maxDailyMgKg: 40,
+                            maxDailyMgAbs: 2400
+                        },
+                        {
+                            id: 'ibu_5',
+                            label: 'Low-Grade Fever <39.2°C (5 mg/kg/dose q6-8h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 5,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 6–8 hours (TID / QID)',
+                            maxSingleMg: 400,
+                            maxDailyMgKg: 40,
+                            maxDailyMgAbs: 2400
+                        }
+                    ],
+                    clinicalNotes: 'Dosed at 10 mg/kg/dose every 6–8 hours (max 40 mg/kg/day up to 2,400 mg/day). Avoid in dehydrated children or varicella.',
+                    adminTips: 'Administer with food or milk to reduce stomach upset. Ensure adequate hydration during therapy.'
+                },
+                {
+                    id: 'mefenamic',
+                    name: 'Mefenamic Acid Suspension',
+                    activeIngredient: 'Mefenamic Acid (NSAID)',
+                    category: 'Analgesic & Fever',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Not recommended in infants <6 months of age. Limit duration to short-term use (max 7 days).',
+                    formulations: [
+                        { id: 'mef_50', label: 'Suspension 50 mg / 5 mL (10 mg/mL)', mgPerMl: 10, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'mef_std',
+                            label: 'Acute Pain / Pyrexia (6.5 mg/kg/dose q8h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 6.5,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours (TID, max 7 days)',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 20,
+                            maxDailyMgAbs: 1500
+                        }
+                    ],
+                    clinicalNotes: 'NSAID dosed at 6.5 mg/kg/dose every 8 hours for acute pain or refractory fever. Discontinue if diarrhea or rash develops.',
+                    adminTips: 'Give with meals or milk to minimize gastric irritation. Shake well before measuring.'
+                },
+
+                // ================= 2. ANTIBIOTICS (12) =================
+                {
+                    id: 'amoxicillin',
+                    name: 'Amoxicillin Oral Suspension',
+                    activeIngredient: 'Amoxicillin Trihydrate',
+                    category: 'Antibiotics',
+                    minAgeMonths: 0,
+                    ageWarningText: 'For infants <3 months, upper dose limit is 30 mg/kg/day divided every 12 hours.',
+                    formulations: [
+                        { id: 'amox_250', label: 'Suspension 250 mg / 5 mL (50 mg/mL)', mgPerMl: 50, unit: 'mg' },
+                        { id: 'amox_125', label: 'Suspension 125 mg / 5 mL (25 mg/mL)', mgPerMl: 25, unit: 'mg' },
+                        { id: 'amox_400', label: 'Suspension 400 mg / 5 mL (80 mg/mL)', mgPerMl: 80, unit: 'mg' },
+                        { id: 'amox_drops', label: 'Infant Drops 100 mg / mL', mgPerMl: 100, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'amox_45',
+                            label: 'Standard Dose (45 mg/kg/day div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 45,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 50,
+                            maxDailyMgAbs: 1500
+                        },
+                        {
+                            id: 'amox_90',
+                            label: 'High-Dose Otitis / Pneumonia (90 mg/kg/day div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 90,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID × 7–10 days)',
+                            maxSingleMg: 1000,
+                            maxDailyMgKg: 90,
+                            maxDailyMgAbs: 3000
+                        }
+                    ],
+                    clinicalNotes: 'Standard dose: 45 mg/kg/day divided q12h. High-dose regimen (90 mg/kg/day divided q12h) is first-line for Acute Otitis Media and Community-Acquired Pneumonia.',
+                    adminTips: 'May be given with or without food. Shake well before each dose and complete full course.'
+                },
+                {
+                    id: 'augmentin',
+                    name: 'Augmentin (Amoxicillin / Clavulanate)',
+                    activeIngredient: 'Amoxicillin / Clavulanate Potassium',
+                    category: 'Antibiotics',
+                    minAgeMonths: 0,
+                    ageWarningText: 'For infants <3 months, max recommended dose is 30 mg/kg/day (amoxicillin) divided q12h using 156.25 mg/5 mL.',
+                    formulations: [
+                        { id: 'aug_457', label: '457 mg / 5 mL (400 mg Amox + 57 mg Clav) [7:1]', mgPerMl: 80, unit: 'mg' },
+                        { id: 'aug_228', label: '228.5 mg / 5 mL (200 mg Amox + 28.5 mg Clav) [7:1]', mgPerMl: 40, unit: 'mg' },
+                        { id: 'aug_156', label: '156.25 mg / 5 mL (125 mg Amox + 31.25 mg Clav) [4:1]', mgPerMl: 25, unit: 'mg' },
+                        { id: 'aug_312', label: '312.5 mg / 5 mL (250 mg Amox + 62.5 mg Clav) [4:1]', mgPerMl: 50, unit: 'mg' },
+                        { id: 'aug_643', label: 'ES 642.9 mg / 5 mL (600 mg Amox + 42.9 mg Clav) [14:1]', mgPerMl: 120, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'aug_45',
+                            label: 'Standard Dose (45 mg/kg/day Amox div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 45,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 875,
+                            maxDailyMgKg: 45,
+                            maxDailyMgAbs: 1750
+                        },
+                        {
+                            id: 'aug_90',
+                            label: 'High-Dose Otitis / Sinusitis / CAP (90 mg/kg/day Amox div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 90,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID × 7–10 days)',
+                            maxSingleMg: 2000,
+                            maxDailyMgKg: 90,
+                            maxDailyMgAbs: 4000
+                        }
+                    ],
+                    clinicalNotes: 'Calculated strictly by the Amoxicillin component. Prefer 7:1 (228.5 / 457) or 14:1 (ES 642.9) formulations for BID dosing to minimize clavulanate-induced diarrhea.',
+                    adminTips: 'Administer at the start of a meal to reduce GI upset. Keep refrigerated (2–8°C) and discard after 7–10 days.'
+                },
+                {
+                    id: 'azithromycin',
+                    name: 'Azithromycin Oral Suspension',
+                    activeIngredient: 'Azithromycin Dihydrate',
+                    category: 'Antibiotics',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Safety and efficacy for otitis/CAP established in children ≥6 months (≥2 years for strep pharyngitis).',
+                    formulations: [
+                        { id: 'azi_200', label: 'Suspension 200 mg / 5 mL (40 mg/mL)', mgPerMl: 40, unit: 'mg' },
+                        { id: 'azi_100', label: 'Suspension 100 mg / 5 mL (20 mg/mL)', mgPerMl: 20, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'azi_3d',
+                            label: '3-Day Regimen (10 mg/kg once daily × 3 days)',
+                            mode: 'per_kg_dose',
+                            mgKg: 10,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily for 3 days',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 10,
+                            maxDailyMgAbs: 500
+                        },
+                        {
+                            id: 'azi_5d_d1',
+                            label: '5-Day Regimen — Day 1 Loading (10 mg/kg OD)',
+                            mode: 'per_kg_dose',
+                            mgKg: 10,
+                            dosesPerDay: 1,
+                            freqLabel: 'Day 1 only (then 5 mg/kg Days 2–5)',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 10,
+                            maxDailyMgAbs: 500
+                        },
+                        {
+                            id: 'azi_5d_d2',
+                            label: '5-Day Regimen — Days 2–5 Maintenance (5 mg/kg OD)',
+                            mode: 'per_kg_dose',
+                            mgKg: 5,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily on Days 2, 3, 4 & 5',
+                            maxSingleMg: 250,
+                            maxDailyMgKg: 5,
+                            maxDailyMgAbs: 250
+                        }
+                    ],
+                    clinicalNotes: 'Standard cumulative dose is 30 mg/kg over 3 or 5 days. For Strep pharyngitis (penicillin allergy): 12 mg/kg OD × 5 days (max 500 mg/day).',
+                    adminTips: 'Can be given with or without food. Store constituted suspension at room temperature and discard after 10 days.'
+                },
+                {
+                    id: 'cefixime',
+                    name: 'Cefixime Oral Suspension',
+                    activeIngredient: 'Cefixime Trihydrate (3rd-Gen Cephalosporin)',
+                    category: 'Antibiotics',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Safety and efficacy not established in infants <6 months of age.',
+                    formulations: [
+                        { id: 'cef_100', label: 'Suspension 100 mg / 5 mL (20 mg/mL)', mgPerMl: 20, unit: 'mg' },
+                        { id: 'cef_200', label: 'Suspension 200 mg / 5 mL (40 mg/mL)', mgPerMl: 40, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'cef_od',
+                            label: 'Once Daily Regimen (8 mg/kg/day OD)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 8,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD)',
+                            maxSingleMg: 400,
+                            maxDailyMgKg: 8,
+                            maxDailyMgAbs: 400
+                        },
+                        {
+                            id: 'cef_bid',
+                            label: 'Divided BID Regimen (8 mg/kg/day div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 8,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 200,
+                            maxDailyMgKg: 8,
+                            maxDailyMgAbs: 400
+                        }
+                    ],
+                    clinicalNotes: 'Oral 3rd-generation cephalosporin for febrile UTI, otitis media, and pharyngitis at 8 mg/kg/day once daily or divided q12h (max 400 mg/day).',
+                    adminTips: 'May be taken without regard to meals. Reconstituted suspension is stable for 14 days at room temperature or refrigerated.'
+                },
+                {
+                    id: 'cefdinir',
+                    name: 'Cefdinir Oral Suspension',
+                    activeIngredient: 'Cefdinir (3rd-Gen Cephalosporin)',
+                    category: 'Antibiotics',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Safety and efficacy not established in infants <6 months of age.',
+                    formulations: [
+                        { id: 'cefd_125', label: 'Suspension 125 mg / 5 mL (25 mg/mL)', mgPerMl: 25, unit: 'mg' },
+                        { id: 'cefd_250', label: 'Suspension 250 mg / 5 mL (50 mg/mL)', mgPerMl: 50, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'cefd_od',
+                            label: 'Once Daily Regimen (14 mg/kg/day OD)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 14,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD × 5–10 days)',
+                            maxSingleMg: 600,
+                            maxDailyMgKg: 14,
+                            maxDailyMgAbs: 600
+                        },
+                        {
+                            id: 'cefd_bid',
+                            label: 'Divided BID Regimen (14 mg/kg/day div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 14,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 300,
+                            maxDailyMgKg: 14,
+                            maxDailyMgAbs: 600
+                        }
+                    ],
+                    clinicalNotes: 'Dosed at 14 mg/kg/day (max 600 mg/day) once daily or divided q12h (BID required for uncomplicated skin infections).',
+                    adminTips: 'Separate by at least 2 hours from iron supplements or antacids. May cause harmless reddish stools if taken with iron.'
+                },
+                {
+                    id: 'cefuroxime',
+                    name: 'Cefuroxime Axetil Suspension',
+                    activeIngredient: 'Cefuroxime Axetil (2nd-Gen Cephalosporin)',
+                    category: 'Antibiotics',
+                    minAgeMonths: 3,
+                    ageWarningText: 'Safety and efficacy not established in infants <3 months of age.',
+                    formulations: [
+                        { id: 'cefu_125', label: 'Suspension 125 mg / 5 mL (25 mg/mL)', mgPerMl: 25, unit: 'mg' },
+                        { id: 'cefu_250', label: 'Suspension 250 mg / 5 mL (50 mg/mL)', mgPerMl: 50, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'cefu_30',
+                            label: 'Otitis Media / Sinusitis / Impetigo (30 mg/kg/day div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 30,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 30,
+                            maxDailyMgAbs: 1000
+                        },
+                        {
+                            id: 'cefu_20',
+                            label: 'Pharyngitis / Tonsillitis (20 mg/kg/day div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 20,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID × 10 days)',
+                            maxSingleMg: 250,
+                            maxDailyMgKg: 20,
+                            maxDailyMgAbs: 500
+                        }
+                    ],
+                    clinicalNotes: '30 mg/kg/day divided q12h (max 500 mg/dose) for otitis/sinusitis; 20 mg/kg/day divided q12h (max 250 mg/dose) for pharyngitis.',
+                    adminTips: 'MUST be administered with food or milk to markedly enhance oral absorption. Refrigerate reconstituted bottle.'
+                },
+                {
+                    id: 'cephalexin',
+                    name: 'Cephalexin Oral Suspension',
+                    activeIngredient: 'Cephalexin Monohydrate (1st-Gen Cephalosporin)',
+                    category: 'Antibiotics',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Use with caution in neonates; adjust interval in significant renal impairment.',
+                    formulations: [
+                        { id: 'ceph_250', label: 'Suspension 250 mg / 5 mL (50 mg/mL)', mgPerMl: 50, unit: 'mg' },
+                        { id: 'ceph_125', label: 'Suspension 125 mg / 5 mL (25 mg/mL)', mgPerMl: 25, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'ceph_50',
+                            label: 'Standard Skin / UTI / Strep (50 mg/kg/day div q8h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 50,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours (TID)',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 50,
+                            maxDailyMgAbs: 2000
+                        },
+                        {
+                            id: 'ceph_75',
+                            label: 'Severe Skin / Soft Tissue Infection (75 mg/kg/day div q8h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 75,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours (TID)',
+                            maxSingleMg: 1000,
+                            maxDailyMgKg: 100,
+                            maxDailyMgAbs: 4000
+                        }
+                    ],
+                    clinicalNotes: 'First-line oral agent for MSSA impetigo/cellulitis and streptococcal pharyngitis. Standard 50 mg/kg/day divided q8h; severe infections 75–100 mg/kg/day.',
+                    adminTips: 'May be taken with or without food. Store constituted suspension in refrigerator and discard after 14 days.'
+                },
+                {
+                    id: 'clarithromycin',
+                    name: 'Clarithromycin Oral Suspension',
+                    activeIngredient: 'Clarithromycin (Macrolide)',
+                    category: 'Antibiotics',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Safety and efficacy not established in infants <6 months of age.',
+                    formulations: [
+                        { id: 'clar_125', label: 'Suspension 125 mg / 5 mL (25 mg/mL)', mgPerMl: 25, unit: 'mg' },
+                        { id: 'clar_250', label: 'Suspension 250 mg / 5 mL (50 mg/mL)', mgPerMl: 50, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'clar_15',
+                            label: 'Standard Pediatric Dose (15 mg/kg/day div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 15,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID × 7–10 days)',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 15,
+                            maxDailyMgAbs: 1000
+                        }
+                    ],
+                    clinicalNotes: 'Dosed at 15 mg/kg/day divided every 12 hours (7.5 mg/kg/dose), up to maximum 500 mg per dose.',
+                    adminTips: 'May be given with or without food. DO NOT refrigerate reconstituted suspension (causes gelling); keep at room temperature.'
+                },
+                {
+                    id: 'erythromycin',
+                    name: 'Erythromycin Ethylsuccinate (EES)',
+                    activeIngredient: 'Erythromycin Ethylsuccinate',
+                    category: 'Antibiotics',
+                    minAgeMonths: 0,
+                    ageWarningText: 'WARNING: Use in infants <1 month is associated with Infantile Hypertrophic Pyloric Stenosis (IHPS).',
+                    formulations: [
+                        { id: 'ery_200', label: 'Suspension 200 mg / 5 mL (40 mg/mL)', mgPerMl: 40, unit: 'mg' },
+                        { id: 'ery_400', label: 'Suspension 400 mg / 5 mL (80 mg/mL)', mgPerMl: 80, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'ery_40',
+                            label: 'Standard Infection / Pertussis (40 mg/kg/day div q6-8h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 40,
+                            dosesPerDay: 4,
+                            freqLabel: 'Every 6 hours (QID)',
+                            maxSingleMg: 800,
+                            maxDailyMgKg: 50,
+                            maxDailyMgAbs: 3200
+                        }
+                    ],
+                    clinicalNotes: 'Dosed at 30–50 mg/kg/day divided every 6–8 hours (max 3.2–4 g/day for ethylsuccinate salt).',
+                    adminTips: 'Give with food or immediately after meals to reduce abdominal cramping and nausea.'
+                },
+                {
+                    id: 'cotrimoxazole',
+                    name: 'Co-trimoxazole (TMP-SMX)',
+                    activeIngredient: 'Trimethoprim / Sulfamethoxazole',
+                    category: 'Antibiotics',
+                    minAgeMonths: 2,
+                    ageWarningText: 'CONTRAINDICATED in infants <2 months of age due to risk of bilirubin displacement and kernicterus.',
+                    formulations: [
+                        { id: 'tmp_240', label: 'Suspension 240 mg / 5 mL (40 mg TMP + 200 mg SMX / 5 mL)', mgPerMl: 8, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'tmp_8',
+                            label: 'UTI / Skin / MRSA / Shigella (8 mg/kg/day TMP div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 8,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 160,
+                            maxDailyMgKg: 10,
+                            maxDailyMgAbs: 320
+                        }
+                    ],
+                    clinicalNotes: 'Calculated based on Trimethoprim (TMP) component (8 mg TMP/mL in 240 mg/5 mL suspension). Standard dose is 8–10 mg TMP/kg/day divided q12h.',
+                    adminTips: 'Maintain good fluid intake to prevent crystalluria. Stop immediately if any skin rash or mucosal lesions occur.'
+                },
+                {
+                    id: 'metronidazole',
+                    name: 'Metronidazole (Flagyl) Suspension',
+                    activeIngredient: 'Metronidazole Benzoate',
+                    category: 'Antibiotics',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Neonates require extended dosing intervals based on gestational and postnatal age.',
+                    formulations: [
+                        { id: 'met_125', label: 'Suspension 125 mg / 5 mL (25 mg/mL)', mgPerMl: 25, unit: 'mg' },
+                        { id: 'met_200', label: 'Suspension 200 mg / 5 mL (40 mg/mL)', mgPerMl: 40, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'met_30',
+                            label: 'Anaerobic / General Infection (30 mg/kg/day div q8h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 30,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours (TID)',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 30,
+                            maxDailyMgAbs: 1500
+                        },
+                        {
+                            id: 'met_giardia',
+                            label: 'Giardiasis (15 mg/kg/day div q8h × 5–7 days)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 15,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours (TID × 5–7 days)',
+                            maxSingleMg: 250,
+                            maxDailyMgKg: 15,
+                            maxDailyMgAbs: 750
+                        },
+                        {
+                            id: 'met_amoeba',
+                            label: 'Invasive Amebiasis (40 mg/kg/day div q8h × 7–10 days)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 40,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours (TID × 7–10 days)',
+                            maxSingleMg: 750,
+                            maxDailyMgKg: 50,
+                            maxDailyMgAbs: 2250
+                        }
+                    ],
+                    clinicalNotes: 'Anaerobic infections: 30 mg/kg/day divided q8h; Giardiasis: 15 mg/kg/day divided q8h; Amebiasis: 35–50 mg/kg/day divided q8h.',
+                    adminTips: 'Administer with food or milk to minimize metallic taste and GI upset.'
+                },
+                {
+                    id: 'nitrofurantoin',
+                    name: 'Nitrofurantoin Oral Suspension',
+                    activeIngredient: 'Nitrofurantoin',
+                    category: 'Antibiotics',
+                    minAgeMonths: 1,
+                    ageWarningText: 'CONTRAINDICATED in infants <1 month of age (hemolytic anemia risk) and in CrCl <30 mL/min.',
+                    formulations: [
+                        { id: 'nit_25', label: 'Suspension 25 mg / 5 mL (5 mg/mL)', mgPerMl: 5, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'nit_tx',
+                            label: 'UTI Treatment — Cystitis (6 mg/kg/day div q6h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 6,
+                            dosesPerDay: 4,
+                            freqLabel: 'Every 6 hours (QID × 5–7 days)',
+                            maxSingleMg: 100,
+                            maxDailyMgKg: 7,
+                            maxDailyMgAbs: 400
+                        },
+                        {
+                            id: 'nit_proph',
+                            label: 'UTI Prophylaxis (1.5 mg/kg once daily at bedtime)',
+                            mode: 'per_kg_dose',
+                            mgKg: 1.5,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily at bedtime (HS)',
+                            maxSingleMg: 100,
+                            maxDailyMgKg: 2,
+                            maxDailyMgAbs: 100
+                        }
+                    ],
+                    clinicalNotes: 'For uncomplicated lower UTI (cystitis) only; do NOT use for febrile pyelonephritis due to low renal parenchymal concentrations.',
+                    adminTips: 'MUST be taken with food or milk to enhance absorption and prevent nausea. May harmlessly turn urine rust-brown.'
+                },
+
+                // ================= 3. ALLERGY, COLD & COUGH (10) =================
+                {
+                    id: 'aferin',
+                    name: 'Aferin Pediatric Syrup',
+                    activeIngredient: 'Paracetamol 120 mg + Chlorpheniramine 1 mg / 5 mL',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 24,
+                    ageWarningText: 'Not recommended in children <2 years of age due to risk of sedation, respiratory depression, or paradoxical excitation from chlorpheniramine.',
+                    formulations: [
+                        { id: 'af_120', label: '120 mg Paracetamol + 1 mg Chlorpheniramine / 5 mL', mgPerMl: 24, unit: 'mg' },
+                        { id: 'af_160', label: '160 mg Paracetamol + 1 mg Chlorpheniramine / 5 mL', mgPerMl: 32, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'af_std',
+                            label: 'Pediatric Cold & Fever (12.5 mg/kg Paracetamol q6h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 12.5,
+                            dosesPerDay: 4,
+                            freqLabel: 'Every 6 hours (Max 4 doses/day)',
+                            maxSingleMg: 500,
+                            maxDailyMgKg: 60,
+                            maxDailyMgAbs: 2000
+                        }
+                    ],
+                    clinicalNotes: 'Dosed via Paracetamol component (10–15 mg/kg/dose q6h). Do NOT co-administer with plain paracetamol or other cold remedies.',
+                    adminTips: 'May cause drowsiness. Measure accurately with an oral syringe.'
+                },
+                {
+                    id: 'loratadine',
+                    name: 'Loratadine Syrup',
+                    activeIngredient: 'Loratadine (2nd-Gen Antihistamine)',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 24,
+                    ageWarningText: 'Not approved for children <2 years of age.',
+                    formulations: [
+                        { id: 'lor_5', label: 'Syrup 5 mg / 5 mL (1 mg/mL)', mgPerMl: 1, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'lor_age',
+                            label: 'Age-Stratified Once Daily (2–5 yrs: 5 mg | ≥6 yrs: 10 mg)',
+                            mode: 'custom_loratadine',
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD)',
+                            maxSingleMg: 10,
+                            maxDailyMgAbs: 10
+                        }
+                    ],
+                    clinicalNotes: 'Non-sedating antihistamine: Age 2–5 years: 5 mg (5 mL) once daily; Age ≥6 years: 10 mg (10 mL) once daily.',
+                    adminTips: 'May be administered with or without food.'
+                },
+                {
+                    id: 'desloratadine',
+                    name: 'Desloratadine Oral Solution',
+                    activeIngredient: 'Desloratadine (2nd-Gen Antihistamine)',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 12,
+                    ageWarningText: 'Standard pediatric labeling starts at 12 months (6–11 mos: 1 mg OD off-label/regional).',
+                    formulations: [
+                        { id: 'des_25', label: 'Solution 2.5 mg / 5 mL (0.5 mg/mL)', mgPerMl: 0.5, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'des_age',
+                            label: 'Age-Stratified Once Daily (1–5y: 1.25 mg | 6–11y: 2.5 mg | ≥12y: 5 mg)',
+                            mode: 'custom_desloratadine',
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD)',
+                            maxSingleMg: 5,
+                            maxDailyMgAbs: 5
+                        }
+                    ],
+                    clinicalNotes: '1–5 yrs: 1.25 mg (2.5 mL) OD; 6–11 yrs: 2.5 mg (5 mL) OD; ≥12 yrs: 5 mg (10 mL) OD.',
+                    adminTips: 'Non-sedating active metabolite of loratadine; take without regard to meals.'
+                },
+                {
+                    id: 'cetirizine',
+                    name: 'Cetirizine Syrup',
+                    activeIngredient: 'Cetirizine Hydrochloride',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Not recommended in infants <6 months of age.',
+                    formulations: [
+                        { id: 'cet_5', label: 'Syrup 5 mg / 5 mL (1 mg/mL)', mgPerMl: 1, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'cet_age',
+                            label: 'Age-Stratified Daily Dosing (6–23m: 2.5 mg | 2–5y: 2.5–5 mg | ≥6y: 10 mg)',
+                            mode: 'custom_cetirizine',
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD)',
+                            maxSingleMg: 10,
+                            maxDailyMgAbs: 10
+                        }
+                    ],
+                    clinicalNotes: '6–23 mos: 2.5 mg (2.5 mL) OD; 2–5 yrs: 2.5–5 mg/day; ≥6 yrs: 5–10 mg (5–10 mL) OD.',
+                    adminTips: 'May cause mild drowsiness; evening administration is helpful if somnolence occurs.'
+                },
+                {
+                    id: 'levocetirizine',
+                    name: 'Levocetirizine Oral Solution',
+                    activeIngredient: 'Levocetirizine Dihydrochloride',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Not recommended in infants <6 months of age.',
+                    formulations: [
+                        { id: 'lev_25', label: 'Solution 2.5 mg / 5 mL (0.5 mg/mL)', mgPerMl: 0.5, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'lev_age',
+                            label: 'Age-Stratified Evening Dose (6m–5y: 1.25 mg | 6–11y: 2.5 mg | ≥12y: 5 mg)',
+                            mode: 'custom_levocetirizine',
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily in the evening',
+                            maxSingleMg: 5,
+                            maxDailyMgAbs: 5
+                        }
+                    ],
+                    clinicalNotes: '6 mos–5 yrs: 1.25 mg (2.5 mL) OD; 6–11 yrs: 2.5 mg (5 mL) OD; ≥12 yrs: 5 mg (10 mL) OD.',
+                    adminTips: 'Administer once daily in the evening with or without food.'
+                },
+                {
+                    id: 'fexofenadine',
+                    name: 'Fexofenadine Oral Suspension',
+                    activeIngredient: 'Fexofenadine Hydrochloride',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 24,
+                    ageWarningText: 'Approved for allergic rhinitis in children ≥2 years (≥6 months for chronic urticaria at 15 mg BID).',
+                    formulations: [
+                        { id: 'fex_30', label: 'Suspension 30 mg / 5 mL (6 mg/mL)', mgPerMl: 6, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'fex_age',
+                            label: 'Age-Stratified BID Dosing (2–11 yrs: 30 mg BID | ≥12 yrs: 60 mg BID)',
+                            mode: 'custom_fexofenadine',
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 60,
+                            maxDailyMgAbs: 120
+                        }
+                    ],
+                    clinicalNotes: 'Truly non-sedating antihistamine: 2–11 yrs: 30 mg (5 mL) BID; ≥12 yrs: 60 mg (10 mL) BID.',
+                    adminTips: 'Give with water. Avoid apple, orange, or grapefruit juice within 2 hours as fruit juices reduce bioavailability.'
+                },
+                {
+                    id: 'hydroxyzine',
+                    name: 'Hydroxyzine Syrup',
+                    activeIngredient: 'Hydroxyzine Hydrochloride',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Use with caution in young children; contraindicated in congenital or acquired QT prolongation.',
+                    formulations: [
+                        { id: 'hyd_10', label: 'Syrup 10 mg / 5 mL (2 mg/mL)', mgPerMl: 2, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'hyd_std',
+                            label: 'Pruritus / Urticaria (0.5 mg/kg/dose q6-8h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.5,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 6–8 hours (TID / QID)',
+                            maxSingleMg: 25,
+                            maxDailyMgKg: 2,
+                            maxDailyMgAbs: 100
+                        }
+                    ],
+                    clinicalNotes: 'First-generation sedating antihistamine dosed at 0.5 mg/kg/dose every 6–8 hours (2 mg/kg/day) for severe pruritus.',
+                    adminTips: 'Causes significant drowsiness; useful for nighttime itching.'
+                },
+                {
+                    id: 'chlorpheniramine',
+                    name: 'Chlorpheniramine Maleate Syrup',
+                    activeIngredient: 'Chlorpheniramine Maleate',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 24,
+                    ageWarningText: 'CONTRAINDICATED in children <2 years of age due to severe CNS and respiratory adverse effects.',
+                    formulations: [
+                        { id: 'chl_2', label: 'Syrup 2 mg / 5 mL (0.4 mg/mL)', mgPerMl: 0.4, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'chl_std',
+                            label: 'Weight-Based Allergic Relief (0.1 mg/kg/dose q6h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.1,
+                            dosesPerDay: 4,
+                            freqLabel: 'Every 6 hours (QID)',
+                            maxSingleMg: 4,
+                            maxDailyMgKg: 0.4,
+                            maxDailyMgAbs: 24
+                        }
+                    ],
+                    clinicalNotes: 'Dosed at 0.1 mg/kg/dose every 6 hours (max 1 mg/dose for 2–5 yrs; 2 mg/dose for 6–11 yrs; 4 mg/dose for ≥12 yrs).',
+                    adminTips: 'May cause sedation or paradoxical excitation in young children.'
+                },
+                {
+                    id: 'dextromethorphan',
+                    name: 'Dextromethorphan Cough Syrup',
+                    activeIngredient: 'Dextromethorphan Hydrobromide',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 48,
+                    ageWarningText: 'CONTRAINDICATED in children <4 years of age per AAP/FDA pediatric cough & cold safety guidelines.',
+                    formulations: [
+                        { id: 'dex_15', label: 'Syrup 15 mg / 5 mL (3 mg/mL)', mgPerMl: 3, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'dex_std',
+                            label: 'Antitussive Cough Suppression (0.5 mg/kg/dose q6-8h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.5,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 6–8 hours (TID / QID)',
+                            maxSingleMg: 30,
+                            maxDailyMgKg: 2,
+                            maxDailyMgAbs: 120
+                        }
+                    ],
+                    clinicalNotes: 'Dosed at 0.5 mg/kg/dose every 6–8 hours (max 7.5 mg/dose for 4–5 yrs; 15 mg/dose for 6–11 yrs; 30 mg/dose for ≥12 yrs).',
+                    adminTips: 'Do not use for wet/productive cough or asthma exacerbations.'
+                },
+                {
+                    id: 'ambroxol',
+                    name: 'Ambroxol Mucolytic Syrup',
+                    activeIngredient: 'Ambroxol Hydrochloride',
+                    category: 'Allergy, Cold & Cough',
+                    minAgeMonths: 24,
+                    ageWarningText: 'Not recommended in children <2 years of age without direct specialist supervision.',
+                    formulations: [
+                        { id: 'amb_15', label: 'Pediatric Syrup 15 mg / 5 mL (3 mg/mL)', mgPerMl: 3, unit: 'mg' },
+                        { id: 'amb_30', label: 'Forte Syrup 30 mg / 5 mL (6 mg/mL)', mgPerMl: 6, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'amb_std',
+                            label: 'Secretolytic Mucolytic Therapy (1.5 mg/kg/day div q8-12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 1.5,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 30,
+                            maxDailyMgKg: 1.6,
+                            maxDailyMgAbs: 90
+                        }
+                    ],
+                    clinicalNotes: 'Mucolytic dosed at 1.2–1.6 mg/kg/day divided BID or TID to reduce mucus viscosity.',
+                    adminTips: 'Give after meals with plenty of fluids to help clear airway secretions.'
+                },
+
+                // ================= 4. GI & ANTI-EMETIC (9) =================
+                {
+                    id: 'plasil',
+                    name: 'Plasil (Metoclopramide) Syrup',
+                    activeIngredient: 'Metoclopramide Hydrochloride',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 12,
+                    ageWarningText: 'HIGH ALERT: CONTRAINDICATED in infants <1 year. Restricted to second-line short-term use (≤5 days) in children 1–18 years due to high risk of extrapyramidal symptoms (acute dystonia).',
+                    formulations: [
+                        { id: 'pla_5', label: 'Syrup 5 mg / 5 mL (1 mg/mL)', mgPerMl: 1, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'pla_std',
+                            label: 'Second-Line Antiemetic (0.1 mg/kg/dose up to TID)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.1,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours (Max TID, ≤5 days)',
+                            maxSingleMg: 10,
+                            maxDailyMgKg: 0.5,
+                            maxDailyMgAbs: 30
+                        }
+                    ],
+                    clinicalNotes: 'Dose: 0.1 mg/kg/dose up to 3 times daily (strict max 0.5 mg/kg/day or 30 mg/day). Ondansetron is strongly preferred for pediatric gastroenteritis.',
+                    adminTips: 'Administer 30 minutes before meals. Monitor closely for neck spasm, oculogyric crisis, or involuntary movements.'
+                },
+                {
+                    id: 'ondansetron',
+                    name: 'Ondansetron Oral Solution',
+                    activeIngredient: 'Ondansetron Hydrochloride (5-HT3 Antagonist)',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Use in infants <6 months requires specialist evaluation; caution in congenital long QT syndrome.',
+                    formulations: [
+                        { id: 'ond_4', label: 'Solution 4 mg / 5 mL (0.8 mg/mL)', mgPerMl: 0.8, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'ond_std',
+                            label: 'Acute Gastroenteritis / Antiemetic (0.15 mg/kg/dose)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.15,
+                            dosesPerDay: 1,
+                            freqLabel: 'Single dose (or q8h PRN max 3 doses)',
+                            maxSingleMg: 8,
+                            maxDailyMgKg: 0.45,
+                            maxDailyMgAbs: 24
+                        }
+                    ],
+                    clinicalNotes: 'First-line antiemetic for pediatric acute gastroenteritis at 0.15 mg/kg/dose (max 8 mg/dose) to facilitate oral rehydration therapy.',
+                    adminTips: 'Wait 15–30 minutes after administration before starting small, frequent sips of Oral Rehydration Solution (ORS).'
+                },
+                {
+                    id: 'domperidone',
+                    name: 'Domperidone Suspension',
+                    activeIngredient: 'Domperidone Maleate',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 12,
+                    ageWarningText: 'CAUTION: Risk of QT prolongation and ventricular arrhythmias. Use lowest effective dose for shortest duration (≤7 days).',
+                    formulations: [
+                        { id: 'dom_5', label: 'Suspension 5 mg / 5 mL (1 mg/mL)', mgPerMl: 1, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'dom_std',
+                            label: 'Nausea / Vomiting (0.25 mg/kg/dose TID before meals)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.25,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours before meals (Max TID)',
+                            maxSingleMg: 10,
+                            maxDailyMgKg: 0.75,
+                            maxDailyMgAbs: 30
+                        }
+                    ],
+                    clinicalNotes: 'Peripheral dopamine antagonist dosed at 0.25 mg/kg/dose up to TID (max 10 mg/dose or 30 mg/day).',
+                    adminTips: 'Give 15–30 minutes before meals. Avoid concurrent QT-prolonging medications or CYP3A4 inhibitors.'
+                },
+                {
+                    id: 'lactulose',
+                    name: 'Lactulose Oral Solution',
+                    activeIngredient: 'Lactulose (Osmotic Laxative)',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Contraindicated in patients with galactosemia.',
+                    formulations: [
+                        { id: 'lac_10', label: 'Solution 10 g / 15 mL (0.67 g/mL)', mgPerMl: 0.667, unit: 'g' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'lac_std',
+                            label: 'Functional Constipation (1 mL/kg/day div q12-24h)',
+                            mode: 'per_kg_day_ml',
+                            dailyMlKg: 1,
+                            dosesPerDay: 2,
+                            freqLabel: 'Divided every 12–24 hours',
+                            maxSingleMl: 30,
+                            maxDailyMlAbs: 60
+                        }
+                    ],
+                    clinicalNotes: 'Osmotic laxative dosed at 1 mL/kg/day (up to 2 mL/kg/day) divided q12–24h, titrated to achieve 1–2 soft stools per day.',
+                    adminTips: 'May be mixed with water, milk, or fruit juice to improve taste.'
+                },
+                {
+                    id: 'peg3350',
+                    name: 'PEG 3350 (Polyethylene Glycol)',
+                    activeIngredient: 'Polyethylene Glycol 3350 Reconstituted Solution',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 6,
+                    ageWarningText: 'Use in infants <6 months under pediatric gastroenterology guidance.',
+                    formulations: [
+                        { id: 'peg_17', label: 'Powder Dissolved 17 g / 120 mL (0.142 g/mL)', mgPerMl: 0.1417, unit: 'g' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'peg_std',
+                            label: 'Constipation Maintenance (0.7 g/kg/day OD)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 0.7,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD)',
+                            maxSingleMg: 17,
+                            maxDailyMgKg: 0.8,
+                            maxDailyMgAbs: 17
+                        }
+                    ],
+                    clinicalNotes: 'First-line osmotic laxative for chronic pediatric constipation at 0.7 g/kg/day (range 0.4–0.8 g/kg/day, max 17 g/day).',
+                    adminTips: 'Dissolve 17 g packet in 120 mL (4 oz) of water, juice, or milk and stir until clear before drinking.'
+                },
+                {
+                    id: 'zinc',
+                    name: 'Zinc Sulfate (Acute Diarrhea)',
+                    activeIngredient: 'Elemental Zinc (as Zinc Sulfate)',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Safe from birth per WHO/UNICEF acute diarrhea management guidelines.',
+                    formulations: [
+                        { id: 'zn_20', label: 'Syrup 20 mg / 5 mL (4 mg/mL)', mgPerMl: 4, unit: 'mg' },
+                        { id: 'zn_10', label: 'Syrup 10 mg / 5 mL (2 mg/mL)', mgPerMl: 2, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'zn_who',
+                            label: 'WHO Diarrhea Protocol (<6 mos: 10 mg OD | ≥6 mos: 20 mg OD × 10–14d)',
+                            mode: 'custom_zinc',
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily for 10–14 days',
+                            maxSingleMg: 20,
+                            maxDailyMgAbs: 20
+                        }
+                    ],
+                    clinicalNotes: 'WHO/UNICEF standard: Infants <6 months: 10 mg elemental zinc OD × 10–14 days; Children ≥6 months: 20 mg elemental zinc OD × 10–14 days.',
+                    adminTips: 'Complete full 10–14 day course even after diarrhea resolves to reduce recurrence over the next 2–3 months.'
+                },
+                {
+                    id: 'famotidine',
+                    name: 'Famotidine Oral Suspension',
+                    activeIngredient: 'Famotidine (H2-Receptor Antagonist)',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 0,
+                    ageWarningText: 'For infants <3 months, limit dose to 0.5 mg/kg once daily due to slower renal clearance.',
+                    formulations: [
+                        { id: 'fam_40', label: 'Suspension 40 mg / 5 mL (8 mg/mL)', mgPerMl: 8, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'fam_std',
+                            label: 'GERD / Acid Suppression (0.5 mg/kg/dose q12h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.5,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 20,
+                            maxDailyMgKg: 1,
+                            maxDailyMgAbs: 40
+                        }
+                    ],
+                    clinicalNotes: 'H2-receptor blocker dosed at 0.5 mg/kg/dose every 12 hours (1 mg/kg/day, max 40 mg/day).',
+                    adminTips: 'Shake bottle vigorously for 5–10 seconds prior to each dose. Discard reconstituted suspension after 30 days.'
+                },
+                {
+                    id: 'omeprazole',
+                    name: 'Omeprazole Oral Suspension',
+                    activeIngredient: 'Omeprazole (Proton Pump Inhibitor)',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 1,
+                    ageWarningText: 'Approved for erosive esophagitis/GERD in children ≥1 month.',
+                    formulations: [
+                        { id: 'ome_2', label: 'Oral Suspension 2 mg / mL (10 mg / 5 mL)', mgPerMl: 2, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'ome_std',
+                            label: 'GERD / Erosive Esophagitis (1 mg/kg once daily)',
+                            mode: 'per_kg_dose',
+                            mgKg: 1,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily before breakfast (OD)',
+                            maxSingleMg: 20,
+                            maxDailyMgKg: 1,
+                            maxDailyMgAbs: 20
+                        }
+                    ],
+                    clinicalNotes: 'Proton pump inhibitor dosed at 1 mg/kg once daily (max 20 mg/day).',
+                    adminTips: 'Administer 30–60 minutes before the first meal of the day.'
+                },
+                {
+                    id: 'simethicone',
+                    name: 'Simethicone Drops',
+                    activeIngredient: 'Simethicone (Antiflatulent)',
+                    category: 'GI & Anti-emetic',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Safe from birth for infant gas discomfort.',
+                    formulations: [
+                        { id: 'sim_40', label: 'Infant Drops 40 mg / mL', mgPerMl: 40, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'sim_age',
+                            label: 'Age-Stratified Antiflatulent (<2 yrs: 20 mg [0.5 mL] | ≥2 yrs: 40 mg [1 mL] q6h)',
+                            mode: 'custom_simethicone',
+                            dosesPerDay: 4,
+                            freqLabel: 'Every 6 hours after meals & bedtime',
+                            maxSingleMg: 40,
+                            maxDailyMgAbs: 480
+                        }
+                    ],
+                    clinicalNotes: '<2 years: 20 mg (0.5 mL) q6h; ≥2 years: 40 mg (1 mL) q6h (max 12 doses/day).',
+                    adminTips: 'Shake well before use. May be placed directly in mouth or mixed with 30 mL cool water or formula.'
+                },
+
+                // ================= 5. RESPIRATORY & STEROIDS (4) =================
+                {
+                    id: 'salbutamol',
+                    name: 'Salbutamol (Albuterol) Syrup',
+                    activeIngredient: 'Salbutamol Sulfate (Beta-2 Agonist)',
+                    category: 'Respiratory & Steroids',
+                    minAgeMonths: 24,
+                    ageWarningText: 'Inhaled bronchodilators (MDI + spacer or nebulizer) are strongly preferred over oral syrup across all ages due to rapid onset and fewer systemic side effects.',
+                    formulations: [
+                        { id: 'sal_2', label: 'Syrup 2 mg / 5 mL (0.4 mg/mL)', mgPerMl: 0.4, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'sal_std',
+                            label: 'Oral Bronchodilator (0.15 mg/kg/dose q8h)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.15,
+                            dosesPerDay: 3,
+                            freqLabel: 'Every 8 hours (TID)',
+                            maxSingleMg: 4,
+                            maxDailyMgKg: 0.45,
+                            maxDailyMgAbs: 12
+                        }
+                    ],
+                    clinicalNotes: 'Dosed at 0.1–0.15 mg/kg/dose every 8 hours (max 2 mg/dose for 2–5 yrs; 4 mg/dose for ≥6 yrs).',
+                    adminTips: 'Monitor for tachycardia, fine tremor, and restlessness.'
+                },
+                {
+                    id: 'prednisolone',
+                    name: 'Prednisolone Oral Solution',
+                    activeIngredient: 'Prednisolone Sodium Phosphate',
+                    category: 'Respiratory & Steroids',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Short-course systemic corticosteroid; screen for recent varicella exposure in non-immune children.',
+                    formulations: [
+                        { id: 'pred_15', label: 'Solution 15 mg / 5 mL (3 mg/mL)', mgPerMl: 3, unit: 'mg' },
+                        { id: 'pred_5', label: 'Solution 5 mg / 5 mL (1 mg/mL)', mgPerMl: 1, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'pred_asthma',
+                            label: 'Asthma Exacerbation (1.5 mg/kg/day OD × 3–5 days)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 1.5,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (or div BID) × 3–5 days',
+                            maxSingleMg: 60,
+                            maxDailyMgKg: 2,
+                            maxDailyMgAbs: 60
+                        },
+                        {
+                            id: 'pred_croup',
+                            label: 'Acute Viral Croup (1 mg/kg Single Dose)',
+                            mode: 'per_kg_dose',
+                            mgKg: 1,
+                            dosesPerDay: 1,
+                            freqLabel: 'Single stat dose',
+                            maxSingleMg: 60,
+                            maxDailyMgKg: 2,
+                            maxDailyMgAbs: 60
+                        }
+                    ],
+                    clinicalNotes: 'Asthma exacerbation burst: 1–2 mg/kg/day (max 60 mg/day) for 3–5 days (no taper needed if ≤5 days). Croup alternative: 1 mg/kg single dose.',
+                    adminTips: 'Administer in the morning with food or milk to minimize gastric upset and sleep disturbance.'
+                },
+                {
+                    id: 'dexamethasone',
+                    name: 'Dexamethasone Oral Solution',
+                    activeIngredient: 'Dexamethasone (Long-Acting Glucocorticoid)',
+                    category: 'Respiratory & Steroids',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Potent long-acting corticosteroid (~6–7× prednisolone potency); verify concentration carefully.',
+                    formulations: [
+                        { id: 'dexa_2', label: 'Solution 2 mg / 5 mL (0.4 mg/mL)', mgPerMl: 0.4, unit: 'mg' },
+                        { id: 'dexa_05', label: 'Solution 0.5 mg / 5 mL (0.1 mg/mL)', mgPerMl: 0.1, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'dexa_croup',
+                            label: 'Acute Viral Croup (0.6 mg/kg Single Dose)',
+                            mode: 'per_kg_dose',
+                            mgKg: 0.6,
+                            dosesPerDay: 1,
+                            freqLabel: 'Single stat dose (Max 16 mg)',
+                            maxSingleMg: 16,
+                            maxDailyMgKg: 0.6,
+                            maxDailyMgAbs: 16
+                        }
+                    ],
+                    clinicalNotes: 'First-line single-dose treatment for mild, moderate, and severe viral croup at 0.6 mg/kg (max 16 mg).',
+                    adminTips: 'Give with food or juice to mask bitter taste. Long 36–54 hour half-life provides sustained relief of subglottic edema.'
+                },
+                {
+                    id: 'montelukast',
+                    name: 'Montelukast Oral Solution / Granules',
+                    activeIngredient: 'Montelukast Sodium (Leukotriene Antagonist)',
+                    category: 'Respiratory & Steroids',
+                    minAgeMonths: 12,
+                    ageWarningText: 'FDA BOXED WARNING: Monitor for neuropsychiatric events (agitation, aggression, sleep disturbances, mood changes).',
+                    formulations: [
+                        { id: 'mon_4', label: 'Oral Solution / Granules 4 mg / 5 mL (0.8 mg/mL)', mgPerMl: 0.8, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'mon_age',
+                            label: 'Age-Stratified Evening Dose (1–5 yrs: 4 mg | 6–14 yrs: 5 mg | ≥15 yrs: 10 mg)',
+                            mode: 'custom_montelukast',
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily in the evening',
+                            maxSingleMg: 10,
+                            maxDailyMgAbs: 10
+                        }
+                    ],
+                    clinicalNotes: '1–5 yrs: 4 mg once daily; 6–14 yrs: 5 mg once daily; ≥15 yrs: 10 mg once daily. Not for acute asthma rescue.',
+                    adminTips: 'Administer in the evening. Granules may be given directly or mixed with a spoonful of soft cold food within 15 minutes.'
+                },
+
+                // ================= 6. ANTIPARASITIC & SUPPLEMENTS (7) =================
+                {
+                    id: 'albendazole',
+                    name: 'Albendazole Oral Suspension',
+                    activeIngredient: 'Albendazole (Broad-Spectrum Anthelmintic)',
+                    category: 'Antiparasitic & Supplements',
+                    minAgeMonths: 12,
+                    ageWarningText: 'Children 1–2 years receive a reduced 200 mg single dose; avoid in infants <1 year unless specifically indicated.',
+                    formulations: [
+                        { id: 'alb_200', label: 'Suspension 200 mg / 5 mL (40 mg/mL)', mgPerMl: 40, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'alb_single',
+                            label: 'Pinworm / Roundworm / Hookworm (1–2y: 200 mg | ≥2y: 400 mg Single)',
+                            mode: 'custom_albendazole',
+                            dosesPerDay: 1,
+                            freqLabel: 'Single dose (Repeat in 2 weeks for pinworm)',
+                            maxSingleMg: 400,
+                            maxDailyMgAbs: 400
+                        },
+                        {
+                            id: 'alb_giardia',
+                            label: 'Giardiasis 5-Day Course (15 mg/kg/day OD × 5 days)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 15,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily for 5 days',
+                            maxSingleMg: 400,
+                            maxDailyMgKg: 15,
+                            maxDailyMgAbs: 400
+                        }
+                    ],
+                    clinicalNotes: 'Pinworm/roundworm/hookworm: 200 mg single dose (1–2 yrs) or 400 mg single dose (≥2 yrs). Giardiasis: 15 mg/kg/day (max 400 mg) once daily × 5 days.',
+                    adminTips: 'Administer with food. For pinworm (Enterobius), treat all household members simultaneously and repeat dose in 2 weeks.'
+                },
+                {
+                    id: 'mebendazole',
+                    name: 'Mebendazole Oral Suspension',
+                    activeIngredient: 'Mebendazole (Anthelmintic)',
+                    category: 'Antiparasitic & Supplements',
+                    minAgeMonths: 12,
+                    ageWarningText: 'Not recommended in infants <1 year of age (convulsions reported in infants <12 months).',
+                    formulations: [
+                        { id: 'meb_100', label: 'Suspension 100 mg / 5 mL (20 mg/mL)', mgPerMl: 20, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'meb_pin',
+                            label: 'Pinworm (Enterobiasis) — 100 mg Single Dose',
+                            mode: 'flat_dose',
+                            flatMg: 100,
+                            dosesPerDay: 1,
+                            freqLabel: 'Single dose (Repeat in 2 weeks)',
+                            maxSingleMg: 100,
+                            maxDailyMgAbs: 100
+                        },
+                        {
+                            id: 'meb_3d',
+                            label: 'Roundworm / Hookworm / Whipworm — 100 mg BID × 3 days',
+                            mode: 'flat_dose',
+                            flatMg: 100,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID × 3 days)',
+                            maxSingleMg: 100,
+                            maxDailyMgAbs: 200
+                        }
+                    ],
+                    clinicalNotes: 'Standard non-weight-based dosing: 100 mg (5 mL) single dose for pinworm (repeat in 2 weeks) or 100 mg BID × 3 days for roundworm/hookworm.',
+                    adminTips: 'Shake suspension thoroughly before use.'
+                },
+                {
+                    id: 'nystatin',
+                    name: 'Nystatin Oral Suspension',
+                    activeIngredient: 'Nystatin (Polyene Antifungal)',
+                    category: 'Antiparasitic & Supplements',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Safe from birth (including premature neonates) for oral candidiasis.',
+                    formulations: [
+                        { id: 'nys_100k', label: 'Oral Suspension 100,000 IU / mL', mgPerMl: 100000, unit: 'IU' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'nys_thrush',
+                            label: 'Oral Thrush (Infants: 200,000 IU [2 mL] | Children: 500,000 IU [5 mL] QID)',
+                            mode: 'custom_nystatin',
+                            dosesPerDay: 4,
+                            freqLabel: 'Four times daily (QID × 7–14 days)',
+                            maxSingleMg: 600000,
+                            maxDailyMgAbs: 2400000
+                        }
+                    ],
+                    clinicalNotes: 'Infants: 200,000 IU (2 mL) QID; Children: 400,000–600,000 IU (4–6 mL) QID.',
+                    adminTips: 'Place half of dose in each side of mouth after feeds; retain in mouth as long as possible before swallowing. Continue 48h after lesions clear.'
+                },
+                {
+                    id: 'fluconazole',
+                    name: 'Fluconazole Oral Suspension',
+                    activeIngredient: 'Fluconazole (Triazole Antifungal)',
+                    category: 'Antiparasitic & Supplements',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Neonates (<14 days) require extended 72-hour dosing intervals due to prolonged elimination half-life.',
+                    formulations: [
+                        { id: 'flu_50', label: 'Suspension 50 mg / 5 mL (10 mg/mL)', mgPerMl: 10, unit: 'mg' },
+                        { id: 'flu_200', label: 'Suspension 200 mg / 5 mL (40 mg/mL)', mgPerMl: 40, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'flu_d1',
+                            label: 'Oropharyngeal Candidiasis — Day 1 Loading (6 mg/kg)',
+                            mode: 'per_kg_dose',
+                            mgKg: 6,
+                            dosesPerDay: 1,
+                            freqLabel: 'Day 1 loading dose (then 3 mg/kg/day)',
+                            maxSingleMg: 200,
+                            maxDailyMgKg: 6,
+                            maxDailyMgAbs: 200
+                        },
+                        {
+                            id: 'flu_maint',
+                            label: 'Oropharyngeal Candidiasis — Maintenance (3 mg/kg/day OD)',
+                            mode: 'per_kg_dose',
+                            mgKg: 3,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily for 14 days',
+                            maxSingleMg: 100,
+                            maxDailyMgKg: 3,
+                            maxDailyMgAbs: 100
+                        },
+                        {
+                            id: 'flu_sys',
+                            label: 'Systemic Candidiasis (6–12 mg/kg/day OD)',
+                            mode: 'per_kg_dose',
+                            mgKg: 10,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD)',
+                            maxSingleMg: 400,
+                            maxDailyMgKg: 12,
+                            maxDailyMgAbs: 400
+                        }
+                    ],
+                    clinicalNotes: 'Oropharyngeal candidiasis: 6 mg/kg Day 1 loading dose followed by 3 mg/kg once daily × 14 days. Systemic infections: 6–12 mg/kg/day.',
+                    adminTips: 'May be given with or without food. Shake well before each use; discard constituted suspension after 14 days.'
+                },
+                {
+                    id: 'iron',
+                    name: 'Ferrous Sulfate (Elemental Iron)',
+                    activeIngredient: 'Elemental Iron (as Ferrous Sulfate)',
+                    category: 'Antiparasitic & Supplements',
+                    minAgeMonths: 0,
+                    ageWarningText: 'ACCIDENTAL OVERDOSE HAZARD: Keep child-resistant cap tightly closed out of reach of children.',
+                    formulations: [
+                        { id: 'fe_drops', label: 'Infant Drops 15 mg Elemental Iron / mL', mgPerMl: 15, unit: 'mg' },
+                        { id: 'fe_30', label: 'Syrup 30 mg Elemental Iron / 5 mL (6 mg/mL)', mgPerMl: 6, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'fe_tx',
+                            label: 'Iron Deficiency Anemia Treatment (4 mg/kg/day div q12h)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 4,
+                            dosesPerDay: 2,
+                            freqLabel: 'Every 12 hours (BID)',
+                            maxSingleMg: 100,
+                            maxDailyMgKg: 6,
+                            maxDailyMgAbs: 200
+                        },
+                        {
+                            id: 'fe_proph',
+                            label: 'Iron Deficiency Prophylaxis (2 mg/kg/day OD)',
+                            mode: 'per_kg_day',
+                            dailyMgKg: 2,
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD)',
+                            maxSingleMg: 30,
+                            maxDailyMgKg: 2,
+                            maxDailyMgAbs: 30
+                        }
+                    ],
+                    clinicalNotes: 'Dosed strictly by ELEMENTAL IRON content: 3–6 mg/kg/day for treatment of iron deficiency anemia; 1–2 mg/kg/day for prophylaxis.',
+                    adminTips: 'Best absorbed on an empty stomach with vitamin C (orange juice). Avoid dairy/calcium within 2 hours. Rinse mouth after dosing to prevent temporary teeth staining.'
+                },
+                {
+                    id: 'vitamind3',
+                    name: 'Vitamin D3 (Cholecalciferol)',
+                    activeIngredient: 'Cholecalciferol (Vitamin D3)',
+                    category: 'Antiparasitic & Supplements',
+                    minAgeMonths: 0,
+                    ageWarningText: 'Verify bottle strength carefully (400 IU/mL vs 1,000 IU/mL vs 400 IU/drop) to avoid dosing errors.',
+                    formulations: [
+                        { id: 'vitd_400', label: 'Liquid 400 IU / mL', mgPerMl: 400, unit: 'IU' },
+                        { id: 'vitd_1000', label: 'Liquid 1,000 IU / mL', mgPerMl: 1000, unit: 'IU' },
+                        { id: 'vitd_drop', label: 'Concentrated Drops 400 IU / Drop (~8,000 IU / mL)', mgPerMl: 8000, unit: 'IU' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'vitd_aap',
+                            label: 'AAP Daily Supplementation (<1 yr: 400 IU OD | ≥1 yr: 600 IU OD)',
+                            mode: 'custom_vitd',
+                            dosesPerDay: 1,
+                            freqLabel: 'Once daily (OD)',
+                            maxSingleMg: 1000,
+                            maxDailyMgAbs: 1000
+                        }
+                    ],
+                    clinicalNotes: 'AAP recommended daily allowance: 400 IU once daily for infants <1 year; 600 IU once daily for children and adolescents ≥1 year.',
+                    adminTips: 'If using 400 IU/drop concentrated drops, 1 drop = 400 IU (0.05 mL). Never draw 1 mL of a 400 IU/drop product!'
+                },
+                {
+                    id: 'acyclovir',
+                    name: 'Acyclovir Oral Suspension',
+                    activeIngredient: 'Acyclovir (Antiviral)',
+                    category: 'Antiparasitic & Supplements',
+                    minAgeMonths: 24,
+                    ageWarningText: 'Approved for varicella/HSV in immunocompetent children ≥2 years; neonates require IV acyclovir.',
+                    formulations: [
+                        { id: 'acy_200', label: 'Suspension 200 mg / 5 mL (40 mg/mL)', mgPerMl: 40, unit: 'mg' }
+                    ],
+                    regimens: [
+                        {
+                            id: 'acy_var',
+                            label: 'Varicella / Chickenpox (20 mg/kg/dose QID × 5 days)',
+                            mode: 'per_kg_dose',
+                            mgKg: 20,
+                            dosesPerDay: 4,
+                            freqLabel: 'Four times daily (QID × 5 days)',
+                            maxSingleMg: 800,
+                            maxDailyMgKg: 80,
+                            maxDailyMgAbs: 3200
+                        }
+                    ],
+                    clinicalNotes: 'Dosed at 20 mg/kg/dose four times daily (80 mg/kg/day, max 800 mg/dose) for 5 days; initiate within 24 hours of rash onset.',
+                    adminTips: 'Maintain adequate hydration throughout treatment. May be taken with or without food.'
+                }
+            ];
+
+            // Application State
+            const state = {
+                weightKg: 14.0,
+                ageValue: 3,
+                ageUnit: 'years',
+                selectedMedId: 'aferin',
+                selectedFormIndex: 0,
+                selectedRegimenIndex: 0,
+                selectedCategory: 'All',
+                searchQuery: '',
+                tableSearchQuery: '',
+                tableCategoryFilter: 'All',
+                currentView: 'single'
+            };
+
+            // Cached DOM Elements
+            const els = {};
+
+            function cacheDom() {
+                els.btnViewSingle = document.getElementById('btnViewSingle');
+                els.btnViewAll = document.getElementById('btnViewAll');
+                els.singleDrugView = document.getElementById('singleDrugView');
+                els.allDrugsView = document.getElementById('allDrugsView');
+
+                els.quickWeightContainer = document.getElementById('quickWeightContainer');
+                els.btnResetPatient = document.getElementById('btnResetPatient');
+                els.btnWeightMinus = document.getElementById('btnWeightMinus');
+                els.btnWeightPlus = document.getElementById('btnWeightPlus');
+                els.weightInput = document.getElementById('weightInput');
+                els.weightSlider = document.getElementById('weightSlider');
+                els.weightLbsBadge = document.getElementById('weightLbsBadge');
+
+                els.ageInput = document.getElementById('ageInput');
+                els.ageUnitSelect = document.getElementById('ageUnitSelect');
+                els.ageSummaryBadge = document.getElementById('ageSummaryBadge');
+
+                els.medCountBadge = document.getElementById('medCountBadge');
+                els.medSearchInput = document.getElementById('medSearchInput');
+                els.btnClearSearch = document.getElementById('btnClearSearch');
+                els.categoryPillsContainer = document.getElementById('categoryPillsContainer');
+                els.medicationList = document.getElementById('medicationList');
+
+                els.formulationSelect = document.getElementById('formulationSelect');
+                els.regimenButtonsContainer = document.getElementById('regimenButtonsContainer');
+
+                els.safetyAlertBox = document.getElementById('safetyAlertBox');
+                els.resCategoryBadge = document.getElementById('resCategoryBadge');
+                els.resActiveIngredient = document.getElementById('resActiveIngredient');
+                els.resDrugTitle = document.getElementById('resDrugTitle');
+                els.resFormulationSubtitle = document.getElementById('resFormulationSubtitle');
+                els.btnCopySummary = document.getElementById('btnCopySummary');
+                els.copyBtnLabel = document.getElementById('copyBtnLabel');
+                els.btnPrintSummary = document.getElementById('btnPrintSummary');
+
+                els.resVolumeMl = document.getElementById('resVolumeMl');
+                els.resPracticalRound = document.getElementById('resPracticalRound');
+                els.resDoseMg = document.getElementById('resDoseMg');
+                els.resDoseUnit = document.getElementById('resDoseUnit');
+                els.resFrequencyBadge = document.getElementById('resFrequencyBadge');
+                els.resPerKgActual = document.getElementById('resPerKgActual');
+
+                els.syringeCapacityLabel = document.getElementById('syringeCapacityLabel');
+                els.syringeNote = document.getElementById('syringeNote');
+                els.syringeLiquid = document.getElementById('syringeLiquid');
+                els.syringePlunger = document.getElementById('syringePlunger');
+                els.syringeTicks = document.getElementById('syringeTicks');
+
+                els.resDailyMl = document.getElementById('resDailyMl');
+                els.resDailyMg = document.getElementById('resDailyMg');
+                els.resMaxDaily = document.getElementById('resMaxDaily');
+                els.resClinicalNotes = document.getElementById('resClinicalNotes');
+                els.resAdminTips = document.getElementById('resAdminTips');
+
+                els.overviewSubtitle = document.getElementById('overviewSubtitle');
+                els.tableSearchInput = document.getElementById('tableSearchInput');
+                els.tableCategoryFilter = document.getElementById('tableCategoryFilter');
+                els.btnPrintTable = document.getElementById('btnPrintTable');
+                els.allDrugsTableBody = document.getElementById('allDrugsTableBody');
+
+                els.toastNotification = document.getElementById('toastNotification');
+                els.toastMessage = document.getElementById('toastMessage');
+            }
+
+            /**
+             * Compute total age in months from ageValue & ageUnit
+             */
+            function getTotalAgeMonths() {
+                const val = Math.max(0, Number(state.ageValue) || 0);
+                return state.ageUnit === 'years' ? Math.round(val * 12) : Math.round(val);
+            }
+
+            function formatAgeLabel() {
+                const totalMonths = getTotalAgeMonths();
+                const yrs = Math.floor(totalMonths / 12);
+                const mos = totalMonths % 12;
+                if (yrs === 0) {
+                    return `${mos} mos`;
+                }
+                return mos > 0 ? `${yrs}y ${mos}m (${totalMonths}m)` : `${yrs} yrs (${totalMonths}m)`;
+            }
+
+            /**
+             * Sync Weight & Age UI controls and trigger recalculation
+             */
+            function syncPatientUi() {
+                const w = Math.max(0.5, Math.min(150, Number(state.weightKg) || 0.5));
+                state.weightKg = w;
+
+                if (document.activeElement !== els.weightInput) {
+                    els.weightInput.value = w;
+                }
+                els.weightSlider.value = Math.min(60, Math.max(2, w));
+                els.weightLbsBadge.textContent = `${(w * 2.20462).toFixed(1)} lbs`;
+
+                if (document.activeElement !== els.ageInput) {
+                    els.ageInput.value = state.ageValue;
+                }
+                els.ageUnitSelect.value = state.ageUnit;
+                els.ageSummaryBadge.textContent = formatAgeLabel();
+
+                // Highlight matching quick-weight preset chip
+                const presetBtns = els.quickWeightContainer.querySelectorAll('.quick-wt-btn');
+                presetBtns.forEach((btn) => {
+                    const btnWt = parseFloat(btn.getAttribute('data-wt'));
+                    if (Math.abs(btnWt - w) < 0.01) {
+                        btn.className = 'quick-wt-btn px-2.5 py-1.5 text-xs font-bold rounded-lg bg-clinical-600 text-white border border-clinical-600 shadow-xs transition cursor-pointer';
+                    } else {
+                        btn.className = 'quick-wt-btn px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-clinical-50 hover:text-clinical-700 text-slate-700 border border-slate-200/80 transition cursor-pointer';
+                    }
+                });
+
+                calculateAndRender();
+                if (state.currentView === 'all') {
+                    renderAllDrugsTable();
+                }
+            }
+
+            /**
+             * Switch between Single Drug Calculator and All Syrups Table views
+             */
+            function switchView(viewName) {
+                state.currentView = viewName;
+                if (viewName === 'single') {
+                    els.singleDrugView.classList.remove('hidden');
+                    els.allDrugsView.classList.add('hidden');
+                    els.btnViewSingle.className = 'px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-clinical-700 shadow-sm flex items-center gap-1.5 cursor-pointer';
+                    els.btnViewAll.className = 'px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer';
+                    calculateAndRender();
+                } else {
+                    els.singleDrugView.classList.add('hidden');
+                    els.allDrugsView.classList.remove('hidden');
+                    els.btnViewAll.className = 'px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-clinical-700 shadow-sm flex items-center gap-1.5 cursor-pointer';
+                    els.btnViewSingle.className = 'px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer';
+                    renderAllDrugsTable();
+                }
+            }
+
+            /**
+             * Render Filtered Medication Selection List
+             */
+            function renderMedicationList() {
+                const q = state.searchQuery.trim().toLowerCase();
+                els.btnClearSearch.classList.toggle('hidden', q.length === 0);
+
+                const filtered = MEDICATIONS.filter((med) => {
+                    const catMatch = state.selectedCategory === 'All' || med.category === state.selectedCategory;
+                    const textMatch = !q ||
+                        med.name.toLowerCase().includes(q) ||
+                        med.activeIngredient.toLowerCase().includes(q) ||
+                        med.category.toLowerCase().includes(q);
+                    return catMatch && textMatch;
+                });
+
+                els.medCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Syrup' : 'Syrups'}`;
+
+                if (filtered.length === 0) {
+                    els.medicationList.innerHTML = `
+                        <div class="text-center py-8 px-4 text-slate-400">
+                            <i class="fa-solid fa-prescription-bottle text-2xl mb-2 block"></i>
+                            <p class="text-sm font-medium text-slate-600">No medications match "${escapeHtml(state.searchQuery)}"</p>
+                            <p class="text-xs mt-1">Try clearing the search box or selecting "All (41)".</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                els.medicationList.innerHTML = filtered.map((med) => {
+                    const isSelected = med.id === state.selectedMedId;
+                    const cardClass = isSelected
+                        ? 'bg-clinical-50 border-clinical-500 ring-1 ring-clinical-500 shadow-xs'
+                        : 'bg-white border-slate-200 hover:border-clinical-400 hover:bg-slate-50/80';
+
+                    return `
+                        <button type="button" data-med-id="${med.id}" class="med-card-btn w-full text-left p-3 rounded-xl border transition flex items-start justify-between gap-2.5 cursor-pointer ${cardClass}">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-sm text-slate-900 truncate">${escapeHtml(med.name)}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 truncate mt-0.5">${escapeHtml(med.activeIngredient)}</p>
+                            </div>
+                            <span class="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${isSelected ? 'bg-clinical-600 text-white' : 'bg-slate-100 text-slate-600'}">
+                                ${escapeHtml(med.category.split(' ')[0])}
+                            </span>
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            /**
+             * Select a Medication and Rebuild Formulation Dropdown & Regimen Buttons
+             */
+            function selectMedication(medId) {
+                const med = MEDICATIONS.find((m) => m.id === medId);
+                if (!med) return;
+
+                state.selectedMedId = med.id;
+                state.selectedFormIndex = 0;
+                state.selectedRegimenIndex = 0;
+
+                // Populate Formulation Dropdown
+                els.formulationSelect.innerHTML = med.formulations.map((f, idx) => {
+                    return `<option value="${idx}">${escapeHtml(f.label)}</option>`;
+                }).join('');
+                els.formulationSelect.value = '0';
+
+                // Render Regimen Toggle Buttons
+                renderRegimenButtons(med);
+
+                // Re-render list highlight and compute dose
+                renderMedicationList();
+                calculateAndRender();
+            }
+
+            /**
+             * Render Regimen / Indication Clickable Toggle Buttons
+             */
+            function renderRegimenButtons(med) {
+                els.regimenButtonsContainer.innerHTML = med.regimens.map((reg, idx) => {
+                    const isActive = idx === state.selectedRegimenIndex;
+                    const btnClass = isActive
+                        ? 'bg-clinical-50 border-clinical-600 text-clinical-900 ring-1 ring-clinical-600 font-bold'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 font-medium';
+
+                    return `
+                        <button type="button" data-reg-idx="${idx}" class="regimen-toggle-btn w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between gap-2 cursor-pointer ${btnClass}">
+                            <span>${escapeHtml(reg.label)}</span>
+                            <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-clinical-600 text-white' : 'border border-slate-300 bg-white'}">
+                                ${isActive ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}
+                            </span>
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            /**
+             * Core Dosing Computation Engine for all 41 Medications
+             */
+            function computeDose(med, form, reg, weightKg, totalAgeMonths) {
+                let singleDoseMg = 0;
+                let dailyDoseMg = 0;
+                let singleVolumeMl = 0;
+                let dailyVolumeMl = 0;
+                let dosesPerDay = reg.dosesPerDay;
+                let freqLabel = reg.freqLabel;
+                let targetLabel = '';
+                let wasCapped = false;
+                let capReason = '';
+                const unit = form.unit || 'mg';
+
+                if (reg.mode === 'per_kg_dose') {
+                    targetLabel = `${reg.mgKg} ${unit}/kg/dose`;
+                    singleDoseMg = weightKg * reg.mgKg;
+                    dailyDoseMg = singleDoseMg * dosesPerDay;
+                } else if (reg.mode === 'per_kg_day') {
+                    targetLabel = `${reg.dailyMgKg} ${unit}/kg/day`;
+                    dailyDoseMg = weightKg * reg.dailyMgKg;
+                    singleDoseMg = dailyDoseMg / dosesPerDay;
+                } else if (reg.mode === 'per_kg_day_ml') {
+                    targetLabel = `${reg.dailyMlKg} mL/kg/day`;
+                    dailyVolumeMl = weightKg * reg.dailyMlKg;
+                    if (reg.maxDailyMlAbs && dailyVolumeMl > reg.maxDailyMlAbs) {
+                        dailyVolumeMl = reg.maxDailyMlAbs;
+                        wasCapped = true;
+                        capReason = `Capped at maximum daily volume (${reg.maxDailyMlAbs} mL/day).`;
+                    }
+                    singleVolumeMl = dailyVolumeMl / dosesPerDay;
+                    singleDoseMg = singleVolumeMl * form.mgPerMl;
+                    dailyDoseMg = dailyVolumeMl * form.mgPerMl;
+                } else if (reg.mode === 'flat_dose') {
+                    targetLabel = `${reg.flatMg} ${unit} flat dose`;
+                    singleDoseMg = reg.flatMg;
+                    dailyDoseMg = singleDoseMg * dosesPerDay;
+                } else if (reg.mode === 'custom_loratadine') {
+                    if (totalAgeMonths < 72 && weightKg < 30) {
+                        singleDoseMg = 5;
+                        targetLabel = '5 mg OD (2–5 yrs / <30 kg)';
+                    } else {
+                        singleDoseMg = 10;
+                        targetLabel = '10 mg OD (≥6 yrs / ≥30 kg)';
+                    }
+                    dailyDoseMg = singleDoseMg;
+                } else if (reg.mode === 'custom_desloratadine') {
+                    if (totalAgeMonths < 12) {
+                        singleDoseMg = 1;
+                        targetLabel = '1 mg OD (6–11 mos)';
+                    } else if (totalAgeMonths < 72) {
+                        singleDoseMg = 1.25;
+                        targetLabel = '1.25 mg OD (1–5 yrs)';
+                    } else if (totalAgeMonths < 144) {
+                        singleDoseMg = 2.5;
+                        targetLabel = '2.5 mg OD (6–11 yrs)';
+                    } else {
+                        singleDoseMg = 5;
+                        targetLabel = '5 mg OD (≥12 yrs)';
+                    }
+                    dailyDoseMg = singleDoseMg;
+                } else if (reg.mode === 'custom_cetirizine') {
+                    if (totalAgeMonths < 24) {
+                        singleDoseMg = 2.5;
+                        targetLabel = '2.5 mg OD (6–23 mos)';
+                    } else if (totalAgeMonths < 72) {
+                        singleDoseMg = weightKg >= 15 ? 5 : 2.5;
+                        targetLabel = `${singleDoseMg} mg OD (2–5 yrs)`;
+                    } else {
+                        singleDoseMg = 10;
+                        targetLabel = '10 mg OD (≥6 yrs)';
+                    }
+                    dailyDoseMg = singleDoseMg;
+                } else if (reg.mode === 'custom_levocetirizine') {
+                    if (totalAgeMonths < 72) {
+                        singleDoseMg = 1.25;
+                        targetLabel = '1.25 mg OD (6 mos–5 yrs)';
+                    } else if (totalAgeMonths < 144) {
+                        singleDoseMg = 2.5;
+                        targetLabel = '2.5 mg OD (6–11 yrs)';
+                    } else {
+                        singleDoseMg = 5;
+                        targetLabel = '5 mg OD (≥12 yrs)';
+                    }
+                    dailyDoseMg = singleDoseMg;
+                } else if (reg.mode === 'custom_fexofenadine') {
+                    if (totalAgeMonths < 24) {
+                        singleDoseMg = 15;
+                        targetLabel = '15 mg BID (6–23 mos)';
+                    } else if (totalAgeMonths < 144) {
+                        singleDoseMg = 30;
+                        targetLabel = '30 mg BID (2–11 yrs)';
+                    } else {
+                        singleDoseMg = 60;
+                        targetLabel = '60 mg BID (≥12 yrs)';
+                    }
+                    dailyDoseMg = singleDoseMg * 2;
+                } else if (reg.mode === 'custom_zinc') {
+                    if (totalAgeMonths < 6) {
+                        singleDoseMg = 10;
+                        targetLabel = '10 mg OD (<6 mos WHO)';
+                    } else {
+                        singleDoseMg = 20;
+                        targetLabel = '20 mg OD (≥6 mos WHO)';
+                    }
+                    dailyDoseMg = singleDoseMg;
+                } else if (reg.mode === 'custom_simethicone') {
+                    if (totalAgeMonths < 24) {
+                        singleDoseMg = 20;
+                        targetLabel = '20 mg q6h (<2 yrs)';
+                    } else {
+                        singleDoseMg = 40;
+                        targetLabel = '40 mg q6h (≥2 yrs)';
+                    }
+                    dailyDoseMg = singleDoseMg * 4;
+                } else if (reg.mode === 'custom_montelukast') {
+                    if (totalAgeMonths < 72) {
+                        singleDoseMg = 4;
+                        targetLabel = '4 mg OD (1–5 yrs)';
+                    } else if (totalAgeMonths < 180) {
+                        singleDoseMg = 5;
+                        targetLabel = '5 mg OD (6–14 yrs)';
+                    } else {
+                        singleDoseMg = 10;
+                        targetLabel = '10 mg OD (≥15 yrs)';
+                    }
+                    dailyDoseMg = singleDoseMg;
+                } else if (reg.mode === 'custom_albendazole') {
+                    if (totalAgeMonths < 24) {
+                        singleDoseMg = 200;
+                        targetLabel = '200 mg single (1–2 yrs)';
+                    } else {
+                        singleDoseMg = 400;
+                        targetLabel = '400 mg single (≥2 yrs)';
+                    }
+                    dailyDoseMg = singleDoseMg;
+                } else if (reg.mode === 'custom_nystatin') {
+                    if (totalAgeMonths < 12) {
+                        singleDoseMg = 200000;
+                        targetLabel = '200,000 IU QID (Infant)';
+                    } else {
+                        singleDoseMg = 500000;
+                        targetLabel = '500,000 IU QID (Child)';
+                    }
+                    dailyDoseMg = singleDoseMg * 4;
+                } else if (reg.mode === 'custom_vitd') {
+                    if (totalAgeMonths < 12) {
+                        singleDoseMg = 400;
+                        targetLabel = '400 IU OD (<1 yr AAP)';
+                    } else {
+                        singleDoseMg = 600;
+                        targetLabel = '600 IU OD (≥1 yr AAP)';
+                    }
+                    dailyDoseMg = singleDoseMg;
+                }
+
+                // Apply Single-Dose & Daily Maximum Ceilings
+                const maxDailyByWeight = reg.maxDailyMgKg ? weightKg * reg.maxDailyMgKg : Infinity;
+                const maxDailyCeiling = Math.min(reg.maxDailyMgAbs || Infinity, maxDailyByWeight);
+
+                if (reg.mode !== 'per_kg_day_ml') {
+                    if (reg.maxSingleMg && singleDoseMg > reg.maxSingleMg) {
+                        singleDoseMg = reg.maxSingleMg;
+                        dailyDoseMg = singleDoseMg * dosesPerDay;
+                        wasCapped = true;
+                        capReason = `Capped at maximum single dose (${reg.maxSingleMg.toLocaleString()} ${unit}).`;
+                    }
+
+                    if (dailyDoseMg > maxDailyCeiling && maxDailyCeiling > 0 && maxDailyCeiling !== Infinity) {
+                        dailyDoseMg = maxDailyCeiling;
+                        singleDoseMg = dailyDoseMg / dosesPerDay;
+                        wasCapped = true;
+                        capReason = `Capped at maximum daily ceiling (${Math.round(maxDailyCeiling).toLocaleString()} ${unit}/day).`;
+                    }
+
+                    // Infant <3 months safety cap for Amoxicillin / Augmentin
+                    if ((med.id === 'amoxicillin' || med.id === 'augmentin') && totalAgeMonths < 3) {
+                        const neoMaxDaily = weightKg * 30;
+                        if (dailyDoseMg > neoMaxDaily) {
+                            dailyDoseMg = neoMaxDaily;
+                            dosesPerDay = 2;
+                            singleDoseMg = dailyDoseMg / 2;
+                            freqLabel = 'Every 12 hours (Infants <3 mos)';
+                            wasCapped = true;
+                            capReason = 'Capped at 30 mg/kg/day divided q12h for infants <3 months.';
+                        }
+                    }
+
+                    singleVolumeMl = singleDoseMg / form.mgPerMl;
+                    dailyVolumeMl = dailyDoseMg / form.mgPerMl;
+                }
+
+                const actualMgKgDose = singleDoseMg / weightKg;
+
+                return {
+                    singleDoseMg,
+                    singleVolumeMl,
+                    dailyDoseMg,
+                    dailyVolumeMl,
+                    dosesPerDay,
+                    freqLabel,
+                    actualMgKgDose,
+                    maxDailyCeilingMg: maxDailyCeiling,
+                    wasCapped,
+                    capReason,
+                    targetLabel,
+                    unit
+                };
+            }
+
+            function formatMass(val, unit) {
+                if (unit === 'IU') {
+                    return Math.round(val).toLocaleString();
+                }
+                if (unit === 'g') {
+                    return val.toFixed(2);
+                }
+                return val >= 10 ? Math.round(val).toLocaleString() : val.toFixed(2);
+            }
+
+            /**
+             * Render Single Drug Calculation Result, Alerts & Oral Syringe
+             */
+            function calculateAndRender() {
+                const med = MEDICATIONS.find((m) => m.id === state.selectedMedId) || MEDICATIONS[0];
+                const form = med.formulations[state.selectedFormIndex] || med.formulations[0];
+                const reg = med.regimens[state.selectedRegimenIndex] || med.regimens[0];
+                const totalAgeMonths = getTotalAgeMonths();
+
+                const res = computeDose(med, form, reg, state.weightKg, totalAgeMonths);
+
+                els.resCategoryBadge.textContent = med.category;
+                els.resActiveIngredient.textContent = med.activeIngredient;
+                els.resDrugTitle.textContent = med.name;
+                els.resFormulationSubtitle.textContent = form.label;
+
+                const volDisplay = res.singleVolumeMl >= 10
+                    ? res.singleVolumeMl.toFixed(1)
+                    : res.singleVolumeMl.toFixed(2);
+                const halfMlRound = (Math.round(res.singleVolumeMl * 2) / 2).toFixed(1);
+                const tspCount = (res.singleVolumeMl / 5).toFixed(2);
+
+                els.resVolumeMl.textContent = volDisplay;
+                els.resPracticalRound.innerHTML = res.singleVolumeMl < 1
+                    ? `Drop equivalent: <strong class="font-mono">~${Math.round(res.singleVolumeMl * 20)} drops</strong> (standard 20 drops/mL)`
+                    : `Practical measure: <strong class="font-mono">~${halfMlRound} mL</strong> (${tspCount} &times; 5 mL spoons)`;
+
+                els.resDoseMg.textContent = formatMass(res.singleDoseMg, res.unit);
+                els.resDoseUnit.textContent = `${res.unit} / dose`;
+                els.resFrequencyBadge.innerHTML = `<i class="fa-solid fa-repeat"></i> ${escapeHtml(res.freqLabel)}`;
+                els.resPerKgActual.textContent = `${res.actualMgKgDose.toFixed(2)} ${res.unit}/kg`;
+
+                els.resDailyMl.textContent = `${res.dailyVolumeMl.toFixed(2)} mL / day`;
+                els.resDailyMg.textContent = `${formatMass(res.dailyDoseMg, res.unit)} ${res.unit} / day`;
+                els.resMaxDaily.textContent = (res.maxDailyCeilingMg && res.maxDailyCeilingMg !== Infinity)
+                    ? `${formatMass(res.maxDailyCeilingMg, res.unit)} ${res.unit} / day`
+                    : 'Age / Weight Tiered';
+
+                els.resClinicalNotes.textContent = med.clinicalNotes;
+                els.resAdminTips.textContent = med.adminTips;
+
+                renderSafetyAlert(med, totalAgeMonths, res);
+                updateVisualSyringe(res.singleVolumeMl);
+            }
+
+            /**
+             * Render Age Restriction or Max Dose Cap Banner
+             */
+            function renderSafetyAlert(med, totalAgeMonths, res) {
+                const isUnderAge = med.minAgeMonths > 0 && totalAgeMonths < med.minAgeMonths;
+                const isYoungInfantNote = med.minAgeMonths === 0 && totalAgeMonths < 3 && med.ageWarningText;
+
+                if (isUnderAge) {
+                    els.safetyAlertBox.className = 'rounded-2xl p-4 border shadow-sm bg-rose-50 border-rose-300 text-rose-900 flex items-start gap-3';
+                    els.safetyAlertBox.innerHTML = `
+                        <i class="fa-solid fa-circle-exclamation text-rose-600 text-lg mt-0.5 shrink-0"></i>
+                        <div>
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-rose-800">Age Restriction Alert (Patient: ${escapeHtml(formatAgeLabel())})</h4>
+                            <p class="text-sm mt-1 leading-relaxed font-medium">${escapeHtml(med.ageWarningText)}</p>
+                        </div>
+                    `;
+                } else if (res.wasCapped || isYoungInfantNote) {
+                    const noticeText = res.wasCapped ? res.capReason : med.ageWarningText;
+                    els.safetyAlertBox.className = 'rounded-2xl p-4 border shadow-sm bg-amber-50 border-amber-300 text-amber-900 flex items-start gap-3';
+                    els.safetyAlertBox.innerHTML = `
+                        <i class="fa-solid fa-shield-halved text-amber-600 text-lg mt-0.5 shrink-0"></i>
+                        <div>
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-800">Clinical Dosing &amp; Safety Notice</h4>
+                            <p class="text-sm mt-1 leading-relaxed">${escapeHtml(noticeText)}</p>
+                        </div>
+                    `;
+                } else {
+                    els.safetyAlertBox.className = 'hidden';
+                }
+            }
+
+            /**
+             * Animated SVG Oral Syringe: auto-selects 1 mL, 3 mL, 5 mL, 10 mL, or 20 mL barrel
+             */
+            function updateVisualSyringe(volumeMl) {
+                let maxBarrel = 10;
+                if (volumeMl <= 1) {
+                    maxBarrel = 1;
+                } else if (volumeMl <= 3) {
+                    maxBarrel = 3;
+                } else if (volumeMl <= 5) {
+                    maxBarrel = 5;
+                } else if (volumeMl <= 10) {
+                    maxBarrel = 10;
+                } else {
+                    maxBarrel = 20;
+                }
+
+                els.syringeCapacityLabel.textContent = `${maxBarrel} mL`;
+
+                const clamped = Math.max(0, Math.min(volumeMl, maxBarrel));
+                const ratio = clamped / maxBarrel;
+                const barrelStartX = 50;
+                const usableWidth = 380;
+                const fillWidth = ratio * usableWidth;
+
+                els.syringeLiquid.setAttribute('width', Math.max(0, fillWidth).toFixed(1));
+                els.syringePlunger.setAttribute('transform', `translate(${(barrelStartX + fillWidth).toFixed(1)}, 0)`);
+
+                if (volumeMl > maxBarrel) {
+                    els.syringeNote.textContent = `${volumeMl.toFixed(1)} mL (Requires >1 syringe fill)`;
+                    els.syringeNote.className = 'text-xs font-mono font-bold text-amber-700';
+                } else {
+                    els.syringeNote.textContent = `Draw plunger to ${volumeMl.toFixed(2)} mL`;
+                    els.syringeNote.className = 'text-xs font-mono font-bold text-clinical-700';
+                }
+
+                // Build accurate graduation ticks and labels
+                let subdivisions = 20;
+                if (maxBarrel === 3) subdivisions = 30;
+                if (maxBarrel === 5) subdivisions = 25;
+
+                const stepMl = maxBarrel / subdivisions;
+                let ticksMarkup = '';
+
+                for (let i = 0; i <= subdivisions; i++) {
+                    const val = Number((i * stepMl).toFixed(2));
+                    const x = barrelStartX + (i / subdivisions) * usableWidth;
+
+                    let isMajor = false;
+                    if (maxBarrel === 1) {
+                        isMajor = (i % 2 === 0);
+                    } else if (maxBarrel === 3) {
+                        isMajor = (i % 5 === 0);
+                    } else if (maxBarrel === 5) {
+                        isMajor = (i % 5 === 0);
+                    } else if (maxBarrel === 10) {
+                        isMajor = (i % 2 === 0);
+                    } else {
+                        isMajor = (i % 2 === 0);
+                    }
+
+                    const tickH = isMajor ? 16 : 9;
+                    ticksMarkup += `<line x1="${x.toFixed(1)}" y1="25" x2="${x.toFixed(1)}" y2="${25 + tickH}" stroke="#334155" stroke-width="${isMajor ? 1.6 : 1}" />`;
+
+                    if (isMajor) {
+                        ticksMarkup += `<text x="${x.toFixed(1)}" y="102" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#475569">${val}</text>`;
+                    }
+                }
+
+                els.syringeTicks.innerHTML = ticksMarkup;
+            }
+
+            /**
+             * Render All 41 Syrups Comparison Table
+             */
+            function renderAllDrugsTable() {
+                const totalAgeMonths = getTotalAgeMonths();
+                const catFilter = state.tableCategoryFilter;
+                const q = state.tableSearchQuery.trim().toLowerCase();
+
+                els.overviewSubtitle.textContent = `Calculated using primary pediatric regimens for ${state.weightKg.toFixed(1)} kg (${formatAgeLabel()}). Click any row to open full calculator.`;
+
+                const filtered = MEDICATIONS.filter((med) => {
+                    const catOk = catFilter === 'All' || med.category === catFilter;
+                    const textOk = !q ||
+                        med.name.toLowerCase().includes(q) ||
+                        med.activeIngredient.toLowerCase().includes(q) ||
+                        med.category.toLowerCase().includes(q);
+                    return catOk && textOk;
+                });
+
+                if (filtered.length === 0) {
+                    els.allDrugsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-slate-400 text-sm">No medications match the selected filters.</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                els.allDrugsTableBody.innerHTML = filtered.map((med) => {
+                    const form = med.formulations[0];
+                    const reg = med.regimens[0];
+                    const res = computeDose(med, form, reg, state.weightKg, totalAgeMonths);
+
+                    const isUnderAge = med.minAgeMonths > 0 && totalAgeMonths < med.minAgeMonths;
+                    const statusBadge = isUnderAge
+                        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-rose-100 text-rose-800"><i class="fa-solid fa-ban"></i> Age &lt;${med.minAgeMonths}m</span>`
+                        : res.wasCapped
+                            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 text-amber-800"><i class="fa-solid fa-shield"></i> Max Capped</span>`
+                            : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-check"></i> Age OK</span>`;
+
+                    return `
+                        <tr data-table-med-id="${med.id}" class="table-drug-row hover:bg-clinical-50/40 transition cursor-pointer ${isUnderAge ? 'bg-rose-50/25' : ''}">
+                            <td class="py-3.5 px-4">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="font-bold text-slate-900">${escapeHtml(med.name)}</span>
+                                    <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">${escapeHtml(med.category)}</span>
+                                </div>
+                                <div class="text-xs font-mono text-slate-500 mt-0.5">${escapeHtml(form.label)}</div>
+                            </td>
+                            <td class="py-3.5 px-4 text-xs font-mono text-slate-600">${escapeHtml(res.targetLabel)}</td>
+                            <td class="py-3.5 px-4 font-mono font-bold text-slate-800">${formatMass(res.singleDoseMg, res.unit)} ${escapeHtml(res.unit)}</td>
+                            <td class="py-3.5 px-4 bg-clinical-50/50 font-mono font-extrabold text-base text-clinical-700">${res.singleVolumeMl.toFixed(2)} mL</td>
+                            <td class="py-3.5 px-4 text-xs font-semibold text-slate-700">${escapeHtml(res.freqLabel)}</td>
+                            <td class="py-3.5 px-4">${statusBadge}</td>
+                            <td class="py-3.5 px-4 text-right no-print">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold">
+                                    Select <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            /**
+             * Copy Formatted Clinical Dose Summary with Sandboxed-Iframe Fallback
+             */
+            function copyDoseSummary() {
+                const med = MEDICATIONS.find((m) => m.id === state.selectedMedId) || MEDICATIONS[0];
+                const form = med.formulations[state.selectedFormIndex] || med.formulations[0];
+                const reg = med.regimens[state.selectedRegimenIndex] || med.regimens[0];
+                const totalAgeMonths = getTotalAgeMonths();
+                const res = computeDose(med, form, reg, state.weightKg, totalAgeMonths);
+
+                const summaryText = [
+                    'PEDIATRIC SYRUP DOSE SUMMARY',
+                    `Patient: ${state.weightKg.toFixed(1)} kg | Age: ${formatAgeLabel()}`,
+                    `Medication: ${med.name} (${form.label})`,
+                    `Regimen: ${reg.label}`,
+                    `Give Per Dose: ${res.singleVolumeMl.toFixed(2)} mL (${formatMass(res.singleDoseMg, res.unit)} ${res.unit}) — ${res.freqLabel}`,
+                    `Daily Total: ${res.dailyVolumeMl.toFixed(2)} mL/day (${formatMass(res.dailyDoseMg, res.unit)} ${res.unit}/day)`,
+                    `Administration: ${med.adminTips}`
+                ].join('\n');
+
+                const onCopied = () => {
+                    els.copyBtnLabel.textContent = 'Copied!';
+                    showToast('Dose summary copied to clipboard!');
+                    setTimeout(() => {
+                        els.copyBtnLabel.textContent = 'Copy Dose Summary';
+                    }, 2000);
+                };
+
+                // Use execCommand textarea fallback first for reliable sandboxed iframe compatibility
+                const textArea = document.createElement('textarea');
+                textArea.value = summaryText;
+                textArea.setAttribute('readonly', '');
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+
+                let copied = false;
+                try {
+                    copied = document.execCommand('copy');
+                } catch (err) {
+                    copied = false;
+                }
+                document.body.removeChild(textArea);
+
+                if (copied) {
+                    onCopied();
+                } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(summaryText).then(onCopied).catch(() => {
+                        showToast('Unable to copy summary.');
+                    });
+                } else {
+                    showToast('Unable to copy summary.');
+                }
+            }
+
+            let toastTimer = null;
+            function showToast(message) {
+                els.toastMessage.textContent = message;
+                els.toastNotification.classList.remove('translate-y-20', 'opacity-0');
+                if (toastTimer) clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    els.toastNotification.classList.add('translate-y-20', 'opacity-0');
+                }, 2800);
+            }
+
+            function escapeHtml(str) {
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            /**
+             * Attach All Event Listeners Cleanly via addEventListener & Event Delegation
+             */
+            function bindEvents() {
+                // 1. View Toggle Buttons
+                els.btnViewSingle.addEventListener('click', () => switchView('single'));
+                els.btnViewAll.addEventListener('click', () => switchView('all'));
+
+                // 2. Weight Stepper -, +, Input, Slider & Quick-Weight Chips
+                els.btnWeightMinus.addEventListener('click', () => {
+                    state.weightKg = Math.max(1, Number((state.weightKg - 0.5).toFixed(1)));
+                    syncPatientUi();
+                });
+
+                els.btnWeightPlus.addEventListener('click', () => {
+                    state.weightKg = Math.min(120, Number((state.weightKg + 0.5).toFixed(1)));
+                    syncPatientUi();
+                });
+
+                els.weightInput.addEventListener('input', () => {
+                    const parsed = parseFloat(els.weightInput.value);
+                    if (!isNaN(parsed) && parsed > 0) {
+                        state.weightKg = parsed;
+                        syncPatientUi();
+                    }
+                });
+
+                els.weightSlider.addEventListener('input', () => {
+                    const parsed = parseFloat(els.weightSlider.value);
+                    if (!isNaN(parsed) && parsed > 0) {
+                        state.weightKg = parsed;
+                        syncPatientUi();
+                    }
+                });
+
+                // Event delegation for Quick Weight Preset Buttons
+                els.quickWeightContainer.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.quick-wt-btn');
+                    if (!btn) return;
+                    const wt = parseFloat(btn.getAttribute('data-wt'));
+                    const ageVal = parseInt(btn.getAttribute('data-age'), 10);
+                    const ageUnit = btn.getAttribute('data-ageunit');
+                    if (!isNaN(wt)) state.weightKg = wt;
+                    if (!isNaN(ageVal)) state.ageValue = ageVal;
+                    if (ageUnit) state.ageUnit = ageUnit;
+                    syncPatientUi();
+                });
+
+                // Reset Button
+                els.btnResetPatient.addEventListener('click', () => {
+                    state.weightKg = 14.0;
+                    state.ageValue = 3;
+                    state.ageUnit = 'years';
+                    syncPatientUi();
+                    showToast('Patient weight and age reset to default.');
+                });
+
+                // 3. Age Input & Unit Selector
+                els.ageInput.addEventListener('input', () => {
+                    const val = parseInt(els.ageInput.value, 10);
+                    state.ageValue = isNaN(val) ? 0 : Math.max(0, val);
+                    syncPatientUi();
+                });
+
+                els.ageUnitSelect.addEventListener('change', () => {
+                    state.ageUnit = els.ageUnitSelect.value;
+                    syncPatientUi();
+                });
+
+                // 4. Search Input, Clear Button & Category Filter Pills
+                els.medSearchInput.addEventListener('input', () => {
+                    state.searchQuery = els.medSearchInput.value;
+                    renderMedicationList();
+                });
+
+                els.btnClearSearch.addEventListener('click', () => {
+                    state.searchQuery = '';
+                    els.medSearchInput.value = '';
+                    renderMedicationList();
+                    els.medSearchInput.focus();
+                });
+
+                els.categoryPillsContainer.addEventListener('click', (e) => {
+                    const pill = e.target.closest('.cat-pill');
+                    if (!pill) return;
+                    state.selectedCategory = pill.getAttribute('data-cat');
+
+                    els.categoryPillsContainer.querySelectorAll('.cat-pill').forEach((p) => {
+                        const active = p === pill;
+                        p.className = active
+                            ? 'cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-clinical-600 text-white shadow-xs transition cursor-pointer'
+                            : 'cat-pill px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer';
+                    });
+
+                    renderMedicationList();
+                });
+
+                // 5. Drug Card Selection via Event Delegation
+                els.medicationList.addEventListener('click', (e) => {
+                    const card = e.target.closest('.med-card-btn');
+                    if (!card) return;
+                    const medId = card.getAttribute('data-med-id');
+                    if (medId) {
+                        selectMedication(medId);
+                    }
+                });
+
+                // 6. Formulation Dropdown & Regimen Toggle Buttons
+                els.formulationSelect.addEventListener('change', () => {
+                    state.selectedFormIndex = parseInt(els.formulationSelect.value, 10) || 0;
+                    calculateAndRender();
+                });
+
+                els.regimenButtonsContainer.addEventListener('click', (e) => {
+                    const regBtn = e.target.closest('.regimen-toggle-btn');
+                    if (!regBtn) return;
+                    const idx = parseInt(regBtn.getAttribute('data-reg-idx'), 10);
+                    if (!isNaN(idx)) {
+                        state.selectedRegimenIndex = idx;
+                        const med = MEDICATIONS.find((m) => m.id === state.selectedMedId) || MEDICATIONS[0];
+                        renderRegimenButtons(med);
+                        calculateAndRender();
+                    }
+                });
+
+                // 7. Copy Dose Summary & Print Buttons
+                els.btnCopySummary.addEventListener('click', copyDoseSummary);
+                els.btnPrintSummary.addEventListener('click', () => window.print());
+                els.btnPrintTable.addEventListener('click', () => window.print());
+
+                // 8. All Syrups Table Filters & Row Click Selection
+                els.tableSearchInput.addEventListener('input', () => {
+                    state.tableSearchQuery = els.tableSearchInput.value;
+                    renderAllDrugsTable();
+                });
+
+                els.tableCategoryFilter.addEventListener('change', () => {
+                    state.tableCategoryFilter = els.tableCategoryFilter.value;
+                    renderAllDrugsTable();
+                });
+
+                els.allDrugsTableBody.addEventListener('click', (e) => {
+                    const row = e.target.closest('.table-drug-row');
+                    if (!row) return;
+                    const medId = row.getAttribute('data-table-med-id');
+                    if (medId) {
+                        selectMedication(medId);
+                        switchView('single');
+                    }
+                });
+            }
+
+            // Initialize Application on DOMContentLoaded
+            document.addEventListener('DOMContentLoaded', () => {
+                cacheDom();
+                bindEvents();
+                selectMedication(state.selectedMedId);
+                syncPatientUi();
+            });
+        })();
+    </script>
+</body>
+</html>
